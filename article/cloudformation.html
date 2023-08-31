@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>CloudFormation - adtommo-notes</title>
+  <link rel="stylesheet" href="/_markdown_plugin_assets/highlight.js/atom-one-light.css" /></head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">CloudFormation</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692717718822"
+                  >2023-08-22 16:21</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692801766472"
+                  >2023-08-23 15:42</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Infrastructure</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Infrastructure as Code (IaC) - version control, easy replication</li>
+<li>Supports most AWS services</li>
+<li>Declarative programming</li>
+<li>Free, pay for the underlying resources</li>
+<li>CloudFormation stacks are isolated from each other</li>
+<li>Deleting a stack deletes every single resource or artifact created by that stack.</li>
+</ul>
+<h1 id="templates">Templates</h1>
+<ul>
+<li><strong>Templates are uploaded and referenced from S3</strong>. To update a template, we cannot edit the previous version. We need re-upload a new version of the template and CloudFormation will find out what needs to be modified to reach the desired state.</li>
+<li>Deploying Templates
+<ul>
+<li>Manual - editing templates in the <strong>CloudFormation Designer (GUI)</strong></li>
+<li>Automated - editing templates in a YAML file and using CLI to deploy the templates (recommended for automation)</li>
+</ul>
+</li>
+</ul>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><strong>Mandatory field</strong></li>
+<li>Resource types are of the form <code>AWS::aws-product-name::data-type-name</code></li>
+<li>Template contents are static (no dynamic code generation allowed)</li>
+</ul>
+<h2 id="parameters">Parameters</h2>
+<p><img src="/_resources/bd1a4708619d4a25a491c5158e57e274.png" />{width=70%}</p>
+<p><img src="/_resources/61369d5f299c4caaa4b22bbaec13e625.png" />{width=50%}</p>
+<ul>
+<li>Dynamic input variables in CloudFormation templates. When deploying the template, the user will be asked to enter values for the defined parameters.</li>
+<li>Parameters can be referenced using <code>!Ref</code></li>
+<li>Parameters can be modified without having to re-upload the template</li>
+<li>AWS creates some default parameters (<strong>Pseudo Parameters</strong>) that can be used in the template.</li>
+</ul>
+<p><img src="/_resources/242983de154c48f7b08448c96babe478.png" /></p>
+<ul>
+<li>
+<p>Supported parameter types:</p>
+<div><pre class="hljs"><code>String – A literal string
+
+Number – An integer<span class="hljs-built_in"> or </span>float
+List&lt;Number&gt; – An<span class="hljs-built_in"> array </span>of integers<span class="hljs-built_in"> or </span>floats
+
+CommaDelimitedList – An<span class="hljs-built_in"> array </span>of literal strings that are separated by commas
+
+AWS::EC2::KeyPair::KeyName – An Amazon EC2 key pair name
+
+AWS::EC2::SecurityGroup::Id – A security group ID
+AWS::EC2::Subnet::Id – A subnet ID
+AWS::EC2::VPC::Id – A VPC ID
+
+List&lt;AWS::EC2::VPC::Id&gt; – An<span class="hljs-built_in"> array </span>of VPC IDs
+List&lt;AWS::EC2::SecurityGroup::Id&gt; – An<span class="hljs-built_in"> array </span>of security group IDs
+List&lt;AWS::EC2::Subnet::Id&gt; – An<span class="hljs-built_in"> array </span>of subnet IDs</code></pre></div>
+</li>
+<li>
+<p>All the parameters are independent of each other.</p>
+</li>
+</ul>
+<h2 id="mappings">Mappings</h2>
+<ul>
+<li>
+<p>Static variables hardcoded in the template</p>
+</li>
+<li>
+<p>Mappings are great when the value can be deduced from variables such as Region, AZ, AWS Account ID, etc.</p>
+</li>
+<li>
+<p><code>Fn::FindInMap</code> or <code>!FindInMap</code> is used to fetch the value from a map</p>
+<p><code>!FindInMap [MapName, TopLevelKey, SecondLevelKey]</code> (always this syntax)</p>
+</li>
+<li>
+<p>Example: Select the AMI based on the region and architecture</p>
+<p><img src="/_resources/36c9686e30e44e8096bea0ae533c01fa.png" /></p>
+</li>
+</ul>
+<h2 id="outputs">Outputs</h2>
+<ul>
+<li>Export output values after the stack creation (optional)</li>
+<li>Exported outputs can be imported by other CloudFormation stacks using <code>!ImportValue</code> function along with their export names.</li>
+<li>Exported output name must be unique within the region.</li>
+<li>We cannot delete a stack if its outputs are being referenced by another stack</li>
+<li>Example: In the network template, export the SSH security group and import them in other stacks to apply to EC2 instances.</li>
+</ul>
+<p><img src="/_resources/aa5711d35c1040289c933079f96047a2.png" />{width=70%}</p>
+<p><img src="/_resources/95a0a9be311542af929416f7f1eb7b94.png" />{width=50%}</p>
+<h2 id="conditions">Conditions</h2>
+<ul>
+<li>
+<p>Control the creation of <strong>resources</strong> or <strong>outputs</strong> based on a condition</p>
+</li>
+<li>
+<p><strong>Conditions cannot be used within the Parameters section</strong></p>
+</li>
+<li>
+<p>Conditions can reference other conditions for nesting</p>
+</li>
+<li>
+<p>Supported functions: And, Or, Not, Equals, If</p>
+</li>
+<li>
+<p>Example: <code>CreateProdResources</code> will be True only if <code>EnvType</code> is <code>prod</code>.</p>
+<p><img src="/_resources/7212f06214994ada953e458a1e1baf9d.png" />{width=80%}</p>
+<p>MountPoint resource will be created only if <code>CreateProdResources</code> is True.</p>
+<p><img src="/_resources/0d15efbd0d9142538febd091500499cd.png" />{width=50%}</p>
+</li>
+</ul>
+<h2 id="intrinsic-functions">Intrinsic Functions</h2>
+<ul>
+<li>
+<p><code>Ref</code> - returns the ID of a resource or value of a parameter</p>
+<p><img src="/_resources/5d05dad0672544f0a284393bef897581.png" />{width=40%}</p>
+</li>
+<li>
+<p><code>GetAtt</code> - get an attribute of a resource</p>
+<p><img src="/_resources/718d92071ddf4f1d8885c40da269e336.png" /></p>
+</li>
+<li>
+<p><code>FindInMap</code> - get a value from a mapping</p>
+<p><img src="/_resources/51cf258586a34d9496bd8d1c8df6f17b.png" /></p>
+</li>
+<li>
+<p><code>ImportValue</code> - import exported outputs from other templates</p>
+<p><img src="/_resources/9703c2dc50f745a8aba6ce1aa8009906.png" />{width=50%}</p>
+</li>
+<li>
+<p><code>Join</code> - join comma-delimited list of values</p>
+<p><code>!Join [ ":", [a, b, c] ]</code> ⇒ <code>"a:b:c"</code></p>
+</li>
+<li>
+<p><code>Sub</code> - substitute variables with a string</p>
+</li>
+</ul>
+<h2 id="rollbacks">Rollbacks</h2>
+<ul>
+<li>Two methods:
+<ul>
+<li><strong>Rollback all stack resources (default)</strong> - rollback the entire stack to the last known stable state (deletes everything in the failed stack)</li>
+<li><strong>Preserve successfully provisioned resources</strong> - resources that were successfully provisioned will be preserved, failed resources will be rolled back to the last known stable state</li>
+</ul>
+</li>
+<li>During stack creation, rolling back to the previous state means deleting the entire stack.</li>
+<li>During stack update, rolling back to the previous state will delete the failed stack and bring up the previous version.</li>
+</ul>
+<h2 id="changesets">ChangeSets</h2>
+<p>When we upload a new template to update a stack, ChangeSets show what changes are going to happen to the stack, before creating the stack. If we want to modify the template, we can do that at this stage. Once we are happy, we can execute the change set for the stack to update.</p>
+<p><img src="/_resources/5cec09a7294e47728fa960699217fa12.png" /></p>
+<h2 id="nested-stack">Nested Stack</h2>
+<ul>
+<li>Allow us to reuse repeated patterns or common components across multiple stacks (<strong>best practice</strong>).</li>
+<li>To update a nested stack, always update the parent (root stack) first</li>
+<li><strong>Cross Stacks are used when stacks have different lifecycles</strong> (export a value from a stack and import it in other stacks) whereas <strong>Nested Stacks are used when the components can be reused</strong>.</li>
+</ul>
+<p><img src="/_resources/a2503bee2f154076a6d7d7b8ca8e5848.png" />{width=50%}</p>
+<p>Above: cross stack<br />
+Below: nested stack</p>
+<h2 id="stacksets">StackSets</h2>
+<ul>
+<li>Used to create, update or delete stacks across <strong>multiple accounts or regions</strong> with a single operation.</li>
+<li>Admin account creates StackSets. Trusted accounts can create, update or delete stack instances from StackSets.</li>
+</ul>
+<h2 id="drift">Drift</h2>
+<ul>
+<li>CloudFormation doesn’t prevent against manual configuration changes to the stack. This causes drift in the stack.</li>
+<li>Feature to detect drift in the stack (Select a stack → Action → Detect Drift)</li>
+<li>Shows what is the expected and actual configuration of drifted resources</li>
+<li>Not all resources are supported yet</li>
+</ul>
+<h2 id="stack-notifications">Stack Notifications</h2>
+<ul>
+<li>Enable SNS integration when creating a stack to <strong>send stack events to an SNS topic</strong></li>
+<li>A lambda function can be used to filter for specific events and perform some action (eg. send an email whenever the stack rolls back)</li>
+</ul>
+<p><img src="/_resources/385085078d1b493facbbecb6acdd6f5e.png" /></p>
+<h2 id="stack-policies">Stack Policies</h2>
+<ul>
+<li>
+<p>By default, all update actions are allowed to all the resources during a stack update</p>
+</li>
+<li>
+<p><strong>Stack Policy defines the update actions that are allowed or denied on specific resources during stack update</strong></p>
+</li>
+<li>
+<p>Helps protect some resources from unintentional updates</p>
+</li>
+<li>
+<p>When you create a stack policy, all update operations on all the stack resources are denied. You need to explicitly allow update operations on the resources.</p>
+</li>
+<li>
+<p>Example: allow updates on all resources except the production database</p>
+<p><img src="/_resources/3c0c3f9ef6804c17b1ef37824c3c9b1c.png" />{width=70%}</p>
+</li>
+</ul>
+<h2 id="misc">Misc</h2>
+<ul>
+<li>If the stack is stuck in a <code>DELETE_FAILED</code> state because some resource failed to be deleted, modify the template to retain the resource and manually delete it after the deployment.</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

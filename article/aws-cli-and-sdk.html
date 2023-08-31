@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>AWS CLI &amp; SDK - adtommo-notes</title>
+  <link rel="stylesheet" href="/_markdown_plugin_assets/highlight.js/atom-one-light.css" /></head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">AWS CLI &amp; SDK</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692805053889"
+                  >2023-08-23 16:37</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692805096514"
+                  >2023-08-23 16:38</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Extras</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="aws-cli">AWS CLI</h1>
+<ul>
+<li>AWS CLI is written in Python SDK (boto3)</li>
+<li>When no region is specified in the CLI or SDK, the default region is <code>us-east-1</code></li>
+<li>Before making API calls against MFA-protected APIs, you need to use <code>sts:GetSessionToken</code> to get temporary credentials.</li>
+</ul>
+<h3 id="commands">Commands</h3>
+<ul>
+<li>Configure AWS CLI - <code>aws configure</code></li>
+<li><code>--dry-run</code> flag lets us dry run AWS CLI commands</li>
+<li><code>aws sts decode-authorization-message --encoded-message &lt;encoded-message&gt;</code> - Decode encoded authorization message. Need permission <code>sts:DecodeAuthorizationMessage</code> to be able to run the above command.</li>
+</ul>
+<h3 id="cli-profiles">CLI Profiles</h3>
+<ul>
+<li>
+<p>Allows us to use multiple AWS accounts using the CLI.</p>
+</li>
+<li>
+<p>Configure AWS CLI with a profile info - <code>aws configure --profile &lt;profile-name&gt;</code></p>
+</li>
+<li>
+<p>Specify a profile in AWS command using <code>--profile &lt;profile-name&gt;</code> otherwise the <code>default</code> profile will be used.</p>
+</li>
+<li>
+<p>The credentials for different profiles are stored at <code>~/.aws/credentials</code></p>
+<div><pre class="hljs"><code>[<span class="hljs-string">default</span>]
+<span class="hljs-string">aws_access_key_id</span> <span class="hljs-string">=</span> <span class="hljs-string">ASIAW4X6ZFPB74QH6E64</span>
+<span class="hljs-string">aws_secret_access_key</span> <span class="hljs-string">=</span> <span class="hljs-string">egwe43h45jhw5jwhaergergeh5w</span>
+<span class="hljs-string">AWS_SESSION_TOKEN</span> <span class="hljs-string">=</span> <span class="hljs-string">asdfadsfadcaeghwerbweh43tq4twgrbg4hqgev4weagh43q</span>
+
+[<span class="hljs-string">dev</span>]
+<span class="hljs-string">aws_access_key_id</span> <span class="hljs-string">=</span> <span class="hljs-string">ASIAW4X6ZFPB74QH6E64</span>
+<span class="hljs-string">aws_secret_access_key</span> <span class="hljs-string">=</span> <span class="hljs-string">egwe43h45jhw5jwhaergergeh5w</span>
+<span class="hljs-string">AWS_SESSION_TOKEN</span> <span class="hljs-string">=</span> <span class="hljs-string">asdfadsfadcaeghwerbweh43tq4twgrbg4hqgev4weagh43q</span></code></pre></div>
+</li>
+<li>
+<p>The config for different profiles are stored at <code>~/.aws/config</code></p>
+<div><pre class="hljs"><code>[<span class="hljs-string">default</span>]
+<span class="hljs-string">region</span> <span class="hljs-string">=</span> <span class="hljs-string">us-east-1</span>
+
+[<span class="hljs-string">dev</span>]
+<span class="hljs-string">region</span> <span class="hljs-string">=</span> <span class="hljs-string">us-west-1</span></code></pre></div>
+</li>
+</ul>
+<h1 id="limits-quotas">Limits &amp; Quotas</h1>
+<h3 id="api-rate-limits">API Rate Limits</h3>
+<ul>
+<li>Limits how many API calls we can make to a given service endpoint</li>
+<li>Example:
+<ul>
+<li><code>Describelnstances</code> on EC2 → 100 calls per seconds</li>
+<li><code>GetObject</code> on S3 → 5500 GET per second per prefix</li>
+</ul>
+</li>
+<li>Intermittent errors (ThrottlingExceptions) - use <strong>Exponential Backoff</strong>
+<ul>
+<li>Wait for 1s, 2s, 4s, 8s, and so on before making calls again.</li>
+<li>Already built into the AWS SDK (no need to implement externally)</li>
+<li>If implemented manually, should be used only when the error is 5xx (server side error)</li>
+</ul>
+</li>
+<li>Consistent error - request API throttling limit increase</li>
+</ul>
+<h3 id="service-quotas-service-limits">Service Quotas (Service Limits)</h3>
+<ul>
+<li>Limits how much resource we can use in our AWS account</li>
+<li>Example: 1152 vCPU limit for running on-demand standard instances</li>
+<li>We can increase service quota or service limits by <strong>opening a ticket</strong> or using <strong>Service Quotas API</strong></li>
+</ul>
+<h1 id="credentials-provider-chain">Credentials Provider Chain</h1>
+<p>The CLI or SDK looks for the credentials in the following order:</p>
+<ul>
+<li>CLI or SDK options</li>
+<li>Environment Variables</li>
+<li><code>~/.aws/credentials</code> file</li>
+<li><code>~/.aws/config</code> file</li>
+<li>ECS Container Credentials or EC2 Instance Profile Credentials</li>
+</ul>
+<h1 id="signature-v4-sigv4">Signature V4 (SigV4)</h1>
+<ul>
+<li>The CLI or SDK automatically signs the request made by you to the AWS HTTP APIs so that AWS can verify whether or not the request came from you.</li>
+<li><strong>The request is signed using your AWS credentials</strong> using AWS proprietary <strong>SigV4 signing algorithm</strong>.</li>
+<li>Custom <strong>HTTP requests</strong> made to the AWS API must be signed by the user.</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

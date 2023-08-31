@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>ElastiCache - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">ElastiCache</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692795747448"
+                  >2023-08-23 14:02</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692804352190"
+                  >2023-08-23 16:25</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Storage &amp; Querying</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Regional Service (all the nodes in the cluster must be in the same region)</li>
+<li>AWS managed caching service</li>
+<li><strong>In-memory key-value store</strong> with <strong>sub-millisecond latency</strong></li>
+<li>Need to provision EC2 instances (nodes for the cluster)</li>
+<li><strong>Makes the application stateless</strong> because it doesn’t have to cache locally</li>
+<li><strong>Using ElastiCache requires heavy application code changes</strong></li>
+<li>Usage:
+<ul>
+<li><strong>DB Cache</strong> (lazy loading): cache read operations on a database (reduced latency)</li>
+<li><strong>Session Store</strong>: store user's session data like cart info (allows the application to remain stateless)</li>
+<li><strong>Global Data Store</strong>: store intermediate computation results</li>
+</ul>
+</li>
+</ul>
+<h1 id="redis-vs-memcached">Redis vs Memcached</h1>
+<table>
+<thead>
+<tr>
+<th>Redis</th>
+<th>Memcached</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>In-memory data store</td>
+<td>Distributed memory object cache</td>
+</tr>
+<tr>
+<td>Read Replicas (for scaling reads &amp; HA)</td>
+<td>No replication</td>
+</tr>
+<tr>
+<td>Backup &amp; restore</td>
+<td>No backup &amp; restore</td>
+</tr>
+<tr>
+<td>Single-threaded</td>
+<td>Multi-threaded</td>
+</tr>
+<tr>
+<td>HIPAA compliant</td>
+<td>Not HIPAA compliant</td>
+</tr>
+<tr>
+<td>Data is stored in an in-memory DB which is replicated</td>
+<td>Data is partitioned across multiple nodes (sharding)</td>
+</tr>
+<tr>
+<td>Redis Sorted Sets are used in realtime Gaming Leaderboards</td>
+<td></td>
+</tr>
+<tr>
+<td>Good for auto-completion</td>
+<td></td>
+</tr>
+<tr>
+<td>Multi-AZ support with automated failover (disaster recovery)</td>
+<td></td>
+</tr>
+<tr>
+<td>Encryption at rest and in transit</td>
+<td>Encryption in transit only</td>
+</tr>
+</tbody>
+</table>
+<h1 id="security-access-management">Security &amp; Access Management</h1>
+<ul>
+<li>Network security is managed using <strong>Security Groups</strong></li>
+<li>At rest encryption using KMS</li>
+<li>In-flight encryption using SSL</li>
+<li>Use <strong>Redis Auth</strong> to authenticate to ElastiCache for Redis</li>
+<li>Memcached supports SASL-based authentication</li>
+</ul>
+<h1 id="modes-of-elasticache-replication-for-redis">Modes of ElastiCache Replication for Redis</h1>
+<h2 id="cluster-mode-disabled">Cluster Mode Disabled</h2>
+<ul>
+<li><strong>1 primary node and up to 5 read-replicas</strong> <strong>(asynchronous replication)</strong>. Writes can occur only at the primary node. Reads can occur at any node including the primary node.</li>
+<li><strong>No sharding</strong> (1 shard only) - every node has complete data</li>
+<li><strong>Helpful for scaling read performance</strong></li>
+<li><strong>Automated failover</strong> - if the primary node fails, one of the read-replicas will take over as the new master</li>
+<li>Supports multi-AZ for failover in case an entire AZ is down</li>
+</ul>
+<p><img src="/_resources/ad4a56e8a2d641cb93335028fd6f2315.png" />{width=50%}</p>
+<h2 id="cluster-mode-enabled">Cluster Mode Enabled</h2>
+<ul>
+<li><strong>Sharding</strong> - every node has partial data</li>
+<li><strong>Each shard has 1 primary and up to 5 read-replicas</strong> <strong>(asynchronous replication)</strong></li>
+<li>Sharding is helpful for scaling writes</li>
+<li>Read-replicas are helpful for scaling reads</li>
+<li><strong>Requires multi-AZ</strong> for failover in case an entire AZ is down</li>
+<li>Up to <strong>500 nodes per cluster</strong>
+<ul>
+<li>500 shards without replication (no read-replica)</li>
+<li>250 shards with 1 master and 1 replica</li>
+</ul>
+</li>
+<li>You cannot manually promote any of the replica nodes to primary.</li>
+<li>You can only change the structure of a cluster, the node type, and the number of nodes by restoring from a backup.</li>
+</ul>
+<p><img src="/_resources/7ad75c4e325c4579b27267dcc21bb938.png" />{width=50%}</p>
+<h1 id="design-patterns-for-implementing-caching">Design patterns for implementing caching</h1>
+<h2 id="lazy-loading-cache-aside-lazy-population">Lazy Loading / Cache-Aside / Lazy Population</h2>
+<p>The application reads the data from the cache first. If it is present in the cache (cache hit), the application gets it immediately. If it’s not (cache miss), the application reads it from the DB, and writes it to the cache for later reads. This is used to optimize reads on the cache and is the first thing you should implement as a part of caching. ****This is good when we have a <strong>small cache size and we only want to cache the data that is actively fetched</strong> from the database.</p>
+<p><img src="/_resources/43ed9e36e2c04a6884609bba58907129.png" />{width=60%}</p>
+<p><img src="/_resources/4e5399e73ce54a2fbbc72d920e855362.png" />{width=80%}</p>
+<p><strong>Pros</strong></p>
+<ul>
+<li>Only the data requested from the DB is cached. The cache will not contain unused data.</li>
+<li>Cache failures are not fatal, they just lead to increased latency of fetching the data from the DB.</li>
+</ul>
+<p><strong>Cons</strong></p>
+<ul>
+<li><strong>Cached data can become stale</strong> (outdated)</li>
+<li>Cache miss results in 3 network RTT delay which affects user experience</li>
+</ul>
+<h2 id="write-through">Write Through</h2>
+<p>Whenever there’s a change to some data in the DB (write), write the data to cache. <strong>This is done on top of lazy loading to optimize cache writes.</strong> This enables <strong>faster reads at the cost of longer writes.</strong></p>
+<p>The cache and the DB cannot be updated at the same time via a single atomic operation as these are two separate systems. The cache must be updated or invalidated after writing to the DB.</p>
+<p><img src="/_resources/a001a8d6b8a84155a4f2a647ff3262ed.png" />{width=50%}</p>
+<p><img src="/_resources/3c01fa74eaac43a6b74d09dc8d0342b6.png" />{width=70%}</p>
+<p><strong>Pros</strong></p>
+<ul>
+<li><strong>Cache always contains up to date data</strong> (no stale data)</li>
+<li>Each write takes up 2 network RTT delay which is better than 3 RTT delay during cache miss reads in case of lazy loading.</li>
+</ul>
+<p><strong>Cons</strong></p>
+<ul>
+<li>Data that doesn’t change in the DB doesn’t get cached. Solution is to implement lazy loading alongside write through.</li>
+<li><strong>Cache churn</strong> - most of the cached data will never be read</li>
+</ul>
+<blockquote>
+<p>Lazy loading can be combined with Write through to optimize cache reads and writes.</p>
+</blockquote>
+<h1 id="cache-eviction">Cache Eviction</h1>
+<p>The cache has a limited size and therefore the old or unused data must be removed to make room for new data. This is called as cache eviction. It occurs in 3 ways:</p>
+<ul>
+<li>Delete the item explicitly</li>
+<li>Delete the least recently used (LRU) data</li>
+<li>Use TTL for the data stored in cache</li>
+</ul>
+<p>If too many cache evictions occur, you should consider scaling up/out your cache.</p>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

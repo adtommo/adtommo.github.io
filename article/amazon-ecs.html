@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Amazon ECS - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Amazon ECS</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692717248188"
+                  >2023-08-22 16:14</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692801273771"
+                  >2023-08-23 15:34</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Containers</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>AWS managed container orchestration platform</li>
+<li>Integrates with ALB for load balancing to ECS tasks</li>
+<li>EFS is used as persistent multi-AZ shared storage for ECS tasks</li>
+<li>It doesn't automatically handle resource provisioning, balancing load, auto-scaling, monitoring, and placing your containers across your cluster. Use <strong>Elastic Beanstalk</strong> for that.</li>
+</ul>
+<h1 id="launch-types">Launch Types</h1>
+<h2 id="ec2-launch-type">EC2 Launch Type</h2>
+<p><img src="/_resources/c92386b4cd674eba9fc1cb662b0c371b.png" /></p>
+<ul>
+<li><strong>Not Serverless</strong></li>
+<li>Containers run on underlying EC2 instances</li>
+<li>ECS takes care of launching &amp; stopping containers (ECS tasks)</li>
+<li>You must provision &amp; maintain EC2 instances (use ASG)</li>
+<li><strong>EC2 instances have ECS agent running on them as a docker container</strong></li>
+<li>Inside a VPC spanning multiple AZ, there is an ECS cluster spanning multiple AZ. Inside the ECS cluster, there will be an ASG responsible for launching container instances (EC2). On every EC2 instance, ECS agent will be running (happens automatically if you choose the AMI for ECS when launching the instance) which registers these instances to the ECS cluster. This will allow the ECS cluster to run Docker containers (ECS tasks) on these instances.</li>
+</ul>
+<blockquote>
+<p>The ECS configuration is present in the <code>/etc/ecs/ecs.config</code> file in the EC2 instances. To modify properties such as the ECS cluster to which this instance should attach to, modify this file in the instance or in the user data of ASG.</p>
+</blockquote>
+<h2 id="fargate-launch-type">Fargate Launch Type</h2>
+<p><img src="/_resources/da480551e75d4d1281fb09470816d980.png" /></p>
+<ul>
+<li><strong>Serverless</strong></li>
+<li>No need to provision infrastructure</li>
+<li>No need to worry about infrastructure scaling</li>
+<li>ECS launches the required containers based on the CPU / RAM needed (<strong>we won’t know where these containers are running</strong>)</li>
+<li>VPC and ECS cluster are setup the same way as in EC2 launch type, but instead of using ASG with EC2 instances, we have a Fargate cluster spanning multiple AZ. The Fargate cluster will run ECS tasks anywhere within the cluster and attach an ENI (private IP) to each task. So, if we have a lot of ECS tasks, <strong>we need sufficient free private IPs</strong>.</li>
+</ul>
+<h1 id="iam-roles-for-ecs-tasks">IAM Roles for ECS Tasks</h1>
+<ul>
+<li><strong>EC2 Instance Profile</strong> (IAM role for the EC2 instance)
+<ul>
+<li>Used by the ECS agent to:
+<ul>
+<li>Make API calls to ECS service</li>
+<li>Send container logs to CloudWatch</li>
+<li>Pull Docker image from ECR</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Task Execution Role</strong>
+<ul>
+<li>Allows ECS tasks to access AWS resources</li>
+<li>Each task can have a separate role</li>
+<li><strong>Use different roles for the different ECS Services</strong></li>
+<li>Task Role is defined in the task definition</li>
+<li>Use <code>taskRoleArn</code> parameter to assign IAM policies to ECS Task Execution Role</li>
+<li>Ex. Reference sensitive data in <strong>Secrets Manager</strong> or <strong>SSM Parameter Store</strong></li>
+</ul>
+</li>
+</ul>
+<h1 id="ecs-services">ECS Services</h1>
+<ul>
+<li>An ECS Service is a <strong>collection of long-running ECS tasks</strong> (eg. web application) that perform the same function</li>
+<li>We can use ALB to send requests to these tasks</li>
+<li><strong>Service CPU Usage</strong> or the <strong>SQS queue length</strong> for a service are used for scaling</li>
+</ul>
+<p><img src="/_resources/27f9c4ae7b0f4b8dbf75cb506b6d140f.png" />{width=80%}</p>
+<h1 id="load-balancing">Load Balancing</h1>
+<h2 id="ec2-launch-type-2"><strong>EC2 Launch Type</strong></h2>
+<p><img src="/_resources/e7107f7ad5e44ee28e30836f3c98e476.png" />{width=80%}</p>
+<ul>
+<li>For every container, the container port is mapped to a random free port on the host (instance). So the application running inside that container will be reached by the ALB on that random port. Set the host port as 0 for this to work.</li>
+<li><strong>Dynamic Host Port Mapping</strong> - Once the ALB is registered to a service in the ECS cluster, it will automatically find the right port on the EC2 Instances. This only works with ALB, not CLB.</li>
+<li>You <strong>must allow on the EC2 instance’s security group any port from the ALB security group</strong> because it may attach on any port</li>
+</ul>
+<p><img src="/_resources/af4540ee21eb4a089f294cbc38640fdb.png" />{width=50%}</p>
+<h2 id="fargate-launch-type-2"><strong>Fargate Launch Type</strong></h2>
+<ul>
+<li><strong>Each task has a unique IP but the same container port</strong></li>
+<li>The ALB connects to each task directly on its IP and container port since these containers are not run on a defined host (instance).</li>
+<li>You <strong>must allow on the ENI’s security group the task port from the ALB security group</strong></li>
+</ul>
+<p><img src="/_resources/b1a143b754e746e987d1e38069f22533.png" />{width=50%}</p>
+<h1 id="rolling-updates">Rolling Updates</h1>
+<ul>
+<li><strong>Minimum healthy percentage</strong> - determines how many tasks, running the current version, we can terminate while staying above the threshold</li>
+<li><strong>Maximum percentage</strong> - determines how many new tasks, running the new version, we can launch while staying below the threshold</li>
+</ul>
+<p>Min: 50% and Max: 100% and starting number of tasks 4</p>
+<p><img src="/_resources/35943c22d4914532aabce4368c3db5b5.png" />{width=50%}</p>
+<p>Min: 100% and Max: 150% and starting number of tasks 4</p>
+<p><img src="/_resources/007b4114ae8f4f72b5fa3e20372dbde1.png" />{width=50%}</p>
+<h1 id="secrets-in-ecs-tasks">Secrets in ECS tasks</h1>
+<ul>
+<li>Store the secrets in Secrets Manager or Parameter Store and encrypt them using KMS</li>
+<li>Reference the secrets in container definition with the name of the environment variable</li>
+<li>Create an <strong>ECS task execution role</strong> and reference it with your task definition, which allows access to both KMS and the Parameter Store/Secrets Manager.</li>
+<li>Supported for both EC2 and Fargate launch types</li>
+</ul>
+<h1 id="bind-mounts">Bind Mounts</h1>
+<ul>
+<li><strong>Shared volume between multiple containers</strong> running the same application (same definition file).</li>
+<li>Bind mount lifecycle
+<ul>
+<li>EC2 Tasks: lifecycle of EC2 instances since the volumes exist on the host</li>
+<li>Fargate Tasks: lifecycle of the ECS task [20 GiB (default) - 200 GiB]</li>
+</ul>
+</li>
+</ul>
+<h1 id="shared-file-system-in-ecs">Shared File System in ECS</h1>
+<ul>
+<li><strong>EFS can be mounted as a shared file system between ECS tasks</strong></li>
+<li>Works for both EC2 and Fargate launch types</li>
+<li>ECS Fargate + EFS ⇒ serverless</li>
+</ul>
+<h1 id="ecs-service-auto-scaling">ECS Service Auto Scaling</h1>
+<ul>
+<li>Auto scale the number of ECS tasks in a service</li>
+<li><strong>AWS Application Auto Scaling</strong> can be used to scale on metrics:
+<ul>
+<li>ECS Service Average CPU Utilization</li>
+<li>ECS Service Average Memory Utilization</li>
+<li>ALB Request Count Per Target</li>
+</ul>
+</li>
+<li>The above metrics can be used to setup target tracking or step scaling for ECS tasks. Scheduled scaling can also be used.</li>
+<li>Easier to setup on Fargate launch type because we don’t have to scale the underlying resource.</li>
+<li>For EC2 launch type, auto-scaling EC2 instances:
+<ul>
+<li>Using ASG to scale out based on CPU utilization</li>
+<li><strong>ECS Cluster Capacity Provider</strong> - automatically scales out EC2 instances when the service is missing capacity.</li>
+</ul>
+</li>
+</ul>
+<h1 id="task-definition">Task Definition</h1>
+<ul>
+<li>Analogous to Docker Compose</li>
+<li>Tells ECS how to run the docker containers</li>
+<li><strong>Only 1 IAM Role can be defined per Task Definition.</strong> All the tasks within a service will assume that role.</li>
+<li>Environment variables in Task Definitions
+<ul>
+<li>Hardcoded (defined in the task definition file)</li>
+<li>Referenced from Parameter Store</li>
+<li>Referenced from Secrets Manager</li>
+<li>Imported as Environment Files from S3 bucket</li>
+</ul>
+</li>
+</ul>
+<h1 id="task-placement">Task Placement</h1>
+<p>This is to be decided only in EC2 launch type.</p>
+<h2 id="task-placement-strategy">Task Placement Strategy</h2>
+<ul>
+<li><strong>Binpack</strong>
+<ul>
+<li>Fill up an instance (in terms of CPU or memory) and only then provision a new instance.</li>
+<li>Minimize cost (number of instances)</li>
+<li>Example: Binpack on memory</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/ab01ff7560164282a8bb0ab58745d55a.png" />{width=50%}</p>
+<ul>
+<li><strong>Random</strong>
+<ul>
+<li>Randomly select an instance to place the task.</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/a9bb1be60d774c748572777d421b2e67.png" />{width=50%}</p>
+<ul>
+<li><strong>Spread</strong>
+<ul>
+<li>Spread the tasks on a parameter</li>
+<li>Maximize availability</li>
+<li>Example: spread on AZ</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/5554680bb79c48a88f074a776f0e4507.png" />{width=80%}</p>
+<ul>
+<li>Task placement strategy can be mixed such as spread on AZ and binpack on memory:</li>
+</ul>
+<p><img src="/_resources/dae42e96fffd4cb099d2d6aa788bcd45.png" />{width=80%}</p>
+<h2 id="task-placement-constraints">Task Placement Constraints</h2>
+<ul>
+<li><code>distinctInstance</code> - place each task on a different instance</li>
+<li><code>memberOf</code> - place task on instances that satisfy an expression (eg. only on T2 family of instances)</li>
+</ul>
+<h1 id="troubleshooting-steps">Troubleshooting Steps</h1>
+<ul>
+<li>Verify that the Docker daemon is running on the container instance.</li>
+<li>Verify that the container agent is running on the container instance.</li>
+<li>Verify that the IAM instance profile has the necessary permissions.</li>
+</ul>
+<h1 id="misc">Misc</h1>
+<ul>
+<li>You can use EventBridge to run Amazon ECS tasks when certain AWS events occur. Ex: set up a CloudWatch Events rule that runs an Amazon ECS task whenever a file is uploaded to an S3 bucket.</li>
+<li>For tracing, create a Docker image that runs the X-Ray daemon, upload it to a Docker image repository, and then deploy it to your Amazon ECS cluster. Configure the task definition file to allow your application to communicate with the daemon container.</li>
+<li>Use <strong>advanced container definition parameters</strong> to define environment variables for a task.</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

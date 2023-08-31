@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Elastic Beanstalk - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Elastic Beanstalk</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692718039768"
+                  >2023-08-22 16:27</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692801567428"
+                  >2023-08-23 15:39</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Infrastructure</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<p><img src="/_resources/d77baae30790412b9e09df0002c39e3e.png" />{width=80%}</p>
+<ul>
+<li><strong>PaaS</strong> which provides platform for developers to write and easily deploy code. It automatically creates the necessary infrastructure (EC2, ELB, SG, etc.) in AWS.</li>
+<li>Good for non-serverless applications</li>
+<li>Automatically handles capacity provisioning, load balancing, scaling, application health monitoring, instance configuration, etc. but <strong>we have full control over the configuration.</strong></li>
+<li><strong>Free</strong> (pay for the underlying resources spawned by Beanstalk)</li>
+<li>Supports versioning of application code</li>
+<li>Can create multiple environment (dev, test, prod)</li>
+<li>Supports the deployment of web applications from <strong>Docker</strong> containers and automatically handles load balancing, auto-scaling, monitoring, and placing containers across the cluster.</li>
+<li>Supports pretty much any programming language and even Docker containers.</li>
+<li>Beanstalk CLI helps manage the applications from CLI.</li>
+<li>Beanstalk uses CloudFormation under the hood to provision resources.</li>
+</ul>
+<h1 id="components">Components</h1>
+<ul>
+<li><strong>Application</strong>: collection of Beanstalk components (environment, versions, config, etc.)</li>
+<li><strong>Application Version</strong>: version of your application code</li>
+<li><strong>Environment</strong>: collection of AWS resources running an application version
+<ul>
+<li>Environments are created under the application</li>
+<li>Only 1 application version can be running at a time in an environment</li>
+<li>Can create multiple environments (dev, test, prod) with separate configurations inside an application</li>
+</ul>
+</li>
+</ul>
+<h1 id="web-server-worker-environment-tier">Web Server &amp; Worker Environment Tier</h1>
+<ul>
+<li>Web Environment (Web Server Tier): clients requests are directly handled by EC2 instances through a load balancer.</li>
+<li>Worker Environment (Worker Tier): clients’s requests are put in a SQS queue and the EC2 instances will pull the messages to process them. Scaling depends on the number of SQS messages in the queue.</li>
+</ul>
+<p><img src="/_resources/369242a3ccf147c28905ea271c4635fd.png" /></p>
+<h1 id="deployment-modes">Deployment Modes</h1>
+<p><img src="/_resources/0303d516406447c8b5e551b1c75ff2ab.png" /></p>
+<h1 id="lifecycle-policy">Lifecycle Policy</h1>
+<ul>
+<li>Lifecycle policy to phase out old versions based on:
+<ul>
+<li><strong>Days</strong> (delete versions older than x days)</li>
+<li><strong>Count</strong> (keep latest x versions)</li>
+</ul>
+</li>
+<li>Up to 1000 application version deployed simultaneously</li>
+<li>Option to retain the old version’s source bundle in S3</li>
+</ul>
+<h1 id="eb-extensions">EB Extensions</h1>
+<ul>
+<li>Configure EB environment through config files</li>
+<li>Config files should be present in <code>.ebextensions/</code> directory in the root of the source code</li>
+<li>Config files should have <code>.config</code> extension and should be in YAML or JSON format</li>
+<li>Lifecycle of resources managed by EB Extensions are tied to the EB environment</li>
+<li>Through EB Extensions, we have the ability to add resources (RDS, ElastiCache, etc.) through CloudFormation, which cannot be done from the EB console.</li>
+</ul>
+<h1 id="eb-cloning">EB Cloning</h1>
+<ul>
+<li>Clone an <strong>environment</strong> with the <strong>same configuration</strong></li>
+<li>Useful to deploy a test version of your application</li>
+<li>Data present in DB will not be cloned, only the configuration will be cloned</li>
+<li>After cloning an environment, we can change the configuration</li>
+</ul>
+<h1 id="eb-migration">EB Migration</h1>
+<ul>
+<li><strong>If some change cannot be done in an environment</strong> (eg. changing the load balancer type), <strong>we need to migrate our environment.</strong></li>
+<li>Steps for migration
+<ul>
+<li>Create a new application environment with the same configuration except the required change (cannot clone)</li>
+<li>Perform a CNAME swap or Route 53 update to route all traffic to the new environment</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/4ec0814804b442b7a0cfb00d1e8eb2c7.png" />{width=50%}</p>
+<h2 id="decoupling-db-from-eb-environment">Decoupling DB from EB Environment</h2>
+<ul>
+<li>
+<p><strong>Production environments should not have DB as a part of the environment as its lifecycle gets tied to the environment.</strong></p>
+</li>
+<li>
+<p>Steps to decouple an RDS DB already present in an EB environment:</p>
+<ul>
+<li>Create a snapshot of the DB (for safety)</li>
+<li>Go to RDS console → Protect RDS from deletion</li>
+<li>Create a new EB environment without RDS and connect the application to the existing RDS (using connection string passed in the environment variable)</li>
+<li>Perform a CNAME swap or Route 53 update to route all traffic to the new environment</li>
+<li>Terminate the old environment (RDS won’t be deleted)</li>
+<li>Delete CF stack (which is in <code>DELETE_FAILED</code> state)</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/fe581d6301c843ceb2ac7246fd73b16b.png" />{width=50%}</p>
+<h1 id="running-containerized-applications-on-eb">Running containerized applications on EB</h1>
+<h2 id="single-container">Single Container</h2>
+<ul>
+<li><strong>Running the application as a single container does not use orchestration solutions like ECS.</strong> It runs it directly on an EC2 instance.</li>
+<li>Need to provide either:
+<ul>
+<li><code>Dockerfile</code> - EB will build and run the Docker container (doesn’t require a pre-built docker image in a container repository)</li>
+<li><code>Dockerrun.aws.json</code> (v1) - describes where the prebuilt Docker image is along with how to run it (ports, volumes, etc.)</li>
+</ul>
+</li>
+</ul>
+<h2 id="multi-container">Multi Container</h2>
+<ul>
+<li><strong>Running the application in a multi-container setup creates an ECS cluster along with task definition and executions.</strong> It also provisions ELB in <strong>high availability mode</strong>.</li>
+<li>Runs multiple containers in each EC2 instance.</li>
+<li>Requires <code>Dockerrun.aws.json</code> (v2) at the root of the source code. It is used by EB to generate the ECS task definition.</li>
+<li>The Docker images must be pre-built and stored in a container repository.</li>
+</ul>
+<h1 id="https-on-elastic-beanstalk">HTTPS on Elastic Beanstalk</h1>
+<ul>
+<li>TLS certificate can be loaded on to the load balancer in either of the two ways:
+<ul>
+<li>From the EB console under load balancer configuration</li>
+<li>In the <code>.ebextensions/securelistener-alb.config</code> file</li>
+</ul>
+</li>
+<li>SSL cert can be provisioned using ACM or CLI</li>
+<li>Must configure a SG rule to allow incoming traffic on port 443</li>
+</ul>
+<h1 id="redirect-http-to-https-on-beanstalk">Redirect HTTP to HTTPS on Beanstalk</h1>
+<ul>
+<li>Can be done in either of two ways:
+<ul>
+<li>Configure EC2 instances to redirect HTTP to HTTPS</li>
+<li>Configure ALB with a rule (preferred)</li>
+</ul>
+</li>
+<li>Health Checks should not be redirected</li>
+</ul>
+<h1 id="custom-platform">Custom Platform</h1>
+<ul>
+<li>If your app’s language is incompatible with Beanstalk and does not use Docker, we can use Beanstalk and need to create a custom platform.</li>
+<li>Steps to create custom platform:
+<ul>
+<li>Define an AMI using <code>Platform.yaml</code> file</li>
+<li>Build the platform using <strong>Packer</strong> (open-source tool to create AMIs)</li>
+</ul>
+</li>
+</ul>
+<h1 id="deployment-options-for-update">Deployment options for Update</h1>
+<h2 id="all-at-once">All at once</h2>
+<ul>
+<li>Bring down the old version and then bring up the new version</li>
+<li><strong>Downtime</strong></li>
+<li>Fastest deployment</li>
+<li>No additional cost</li>
+</ul>
+<p><img src="/_resources/04054a0af02840f7aa1d749384d9cce8.png" />{width=50%}</p>
+<h2 id="rolling-updates">Rolling updates</h2>
+<ul>
+<li>Update a portion of applications in buckets</li>
+<li>Application can be running below capacity</li>
+<li>Long deployment</li>
+<li>No additional cost</li>
+</ul>
+<p><img src="/_resources/a69d82c9d53d4d36aababda450cec60f.png" />{width=90%}</p>
+<h2 id="rolling-with-additional-batches">Rolling with additional batches</h2>
+<ul>
+<li>Run rolling updates while adding a bucket size (batch) of new applications that will be removed after deployment.</li>
+<li>Application can be running above capacity (small additional cost)</li>
+<li>Long deployment</li>
+<li>Good for prod environment</li>
+</ul>
+<p><img src="/_resources/296d034ed3d54ad7914fb9a35b7fdf90.png" />{width=80%}</p>
+<h2 id="immutable">Immutable</h2>
+<ul>
+<li>New version is deployed to new instances on a temporary ASG. The instances in the temporary ASG are moved to the current ASG. The instances running the old application version in the current ASG are terminated and the temporary ASG is discarded.</li>
+<li>Longest deployment</li>
+<li>Zero downtime</li>
+<li>High cost (double capacity needed)</li>
+<li><strong>Quick rollback</strong> (just delete the temporary ASG)</li>
+</ul>
+<p><img src="/_resources/40adf240e9854f1b9e97d9d1469761e0.png" />{width=50%}</p>
+<h2 id="blue-green">Blue / Green</h2>
+<ul>
+<li>Create an environment with new application version. Send a small amount of traffic to the new application version (environment) using <strong>Route53 weighted routing</strong> policy. If the new version is working fine, direct all the traffic to the new version (using Application URL swap which internally does a CNAME swap in Route53) and delete the old application environment.</li>
+<li>Zero downtime</li>
+<li>High cost (double capacity needed)</li>
+<li>Not directly available in Beanstalk</li>
+</ul>
+<p><img src="/_resources/2f22f868d7fb4e3aaca9688ff139b7c9.png" />{width=50%}</p>
+<h1 id="deployment-comparisons">Deployment Comparisons</h1>
+<p><img src="/_resources/ce702d42376c4a359aae0a017f7beebe.png" /></p>
+<h1 id="misc">Misc</h1>
+<ul>
+<li>To deploy a new application version through the console, you'll need to upload a source bundle that meets the following requirements:
+<ul>
+<li>Consist of a <strong>single</strong> ZIP file or WAR file</li>
+<li>Not exceed 512 MB</li>
+<li>Not include a parent folder or top-level directory (subdirectories are fine)</li>
+</ul>
+</li>
+<li>To deploy a worker application that processes periodic background tasks, the application bundle must include a <code>cron.yaml</code> file.</li>
+<li>EBS can configure EC2, CloudWatch and ALB. It cannot configure <strong>Lambda</strong> or CloudFront.</li>
+<li>Environment variables can be defined in <code>env.yaml</code> present in the root of the source bundle.</li>
+<li>To deploy a new version of the application, package your application as a <code>zip</code> or <code>war</code> file and deploy it using <code>eb deploy</code> command.</li>
+<li>To migrate an EB environment between accounts, create a saved configuration in the first account and download it to your local machine. Make the account-specific parameter changes and upload to the S3 bucket in second account. From Elastic Beanstalk console, create an application from <strong>Saved Configurations</strong>.</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>EventBridge - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">EventBridge</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692788637231"
+                  >2023-08-23 12:03</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692801902910"
+                  >2023-08-23 15:45</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Messaging</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Extension of CloudWatch Events</li>
+<li>Event buses types:
+<ul>
+<li><strong>Default event bus</strong>: events from AWS services are sent to this</li>
+<li><strong>Custom Event bus</strong>: for your own applications</li>
+<li><strong>Partner event bus</strong>: receive events from external SaaS applications</li>
+</ul>
+</li>
+<li>Event Rules: how to process the events</li>
+<li><strong>Event buses support cross-account access using Event Bus Policy</strong></li>
+<li><strong>Cron Jobs</strong>: when creating an EB rule, we can select “Schedule” instead of event pattern to trigger an event based on a cron expression.</li>
+<li>Can archive events (all or based on a filter) sent to an event bus to replay later</li>
+</ul>
+<blockquote>
+<p>EventBridge is recommended for decoupling applications that reacts to events from third-party SaaS applications.</p>
+</blockquote>
+<h1 id="schema-registry">Schema Registry</h1>
+<ul>
+<li>Defines how the data is structured in the event bus</li>
+<li>Schema can be <strong>versioned</strong></li>
+</ul>
+<h1 id="event-bus-policy">Event Bus Policy</h1>
+<ul>
+<li>Manage permissions for an event bus</li>
+<li>Useful to allow or deny events from another AWS account or region</li>
+</ul>
+<p><img src="/_resources/94f8655c9d7a487794e29c02c189f3ec.png" /></p>
+<h1 id="multi-account-aggregation">Multi-account Aggregation</h1>
+<p>The target for an event rule in an account can be an event bus in another account. The target event bus needs to have an event bus policy, allowing other accounts to send events into it. This way, a central event bus can be used to aggregate events from multiple accounts.</p>
+<p><img src="/_resources/04392c48aaa54e9cab3886a66c165df2.png" /></p>
+<h1 id="misc">Misc</h1>
+<ul>
+<li>EventBridge delivers a near real-time stream of system events that describe changes in AWS resources. Using simple rules that you can quickly set up, you can match events and route them to one or more target functions or streams.</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

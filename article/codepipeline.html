@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>CodePipeline - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">CodePipeline</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692798917278"
+                  >2023-08-23 14:55</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692799955638"
+                  >2023-08-23 15:12</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">CICD</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<p><img src="/_resources/6ad8cba464a84cf695ab723159e98a7e.png" /></p>
+<ul>
+<li>
+<p><strong>Visual Workflow to orchestrate CICD pipelines.</strong> Pipeline can be edited when needed to add or remove stages.</p>
+</li>
+<li>
+<p><strong>Each stage in the pipeline creates an artifact which is stored in S3</strong> (<strong>Artifact Store</strong>). The next stage uses this artifact as input.</p>
+<p><img src="/_resources/dcc71d51115a4996973acb5fdcbde61e.png" /></p>
+</li>
+<li>
+<p>When using <a href="/article/codecommit">CodeCommit</a> as the source, there are two ways to trigger the pipeline:</p>
+<ul>
+<li>Trigger the pipeline on a CW Event for repository change (recommended)</li>
+<li>CodePipeline polling the repository for changes</li>
+</ul>
+</li>
+<li>
+<p><strong>Within a stage, we have action groups where actions can run sequentially or in parallel.</strong> Example, we can create a sequential action groups within a stage to ask for manual approval before deploying the application to prod environment.</p>
+</li>
+</ul>
+<h1 id="troubleshooting">Troubleshooting</h1>
+<ul>
+<li><strong>Events are generated in EventBridge (CW Events) for changes in the state of a pipeline</strong>. Eg. invoke a lambda function to send a notification to the admin if the pipeline fails.</li>
+<li>Status of the pipeline can be viewed in the CodePipeline console</li>
+<li>If CodePipeline can’t perform an action, check IAM permissions on the Service Role (IAM Role for CodePipeline)</li>
+<li>CloudTrail can be used to check for denied API calls</li>
+</ul>
+<h1 id="events-vs-webhooks-vs-polling">Events vs Webhooks vs Polling</h1>
+<p><img src="/_resources/5f8bd96b407c4cb38cbfb0c821e3366a.png" /></p>
+<ul>
+<li><strong>Events</strong>
+<ul>
+<li><strong>Default and recommended way</strong></li>
+<li>Code change in CodeCommit generates an EB event which triggers CodePipeline.</li>
+<li>For a version control application outside of AWS (eg. GitHub), need to use <strong>CodeStar Source Connection</strong> to trigger the CodePipeline on event from GitHub.</li>
+</ul>
+</li>
+<li><strong>Webhooks</strong>
+<ul>
+<li>Older method</li>
+<li>CodePipeline provides a webhook URL which can be used to trigger CodePipeline with a payload</li>
+</ul>
+</li>
+<li><strong>Polling</strong>
+<ul>
+<li>CodePipeline regularly polls the version control application for changes (inefficient)</li>
+</ul>
+</li>
+</ul>
+<h1 id="manual-approval">Manual Approval</h1>
+<p><img src="/_resources/0eadc3ff590a4ce5b1454335c9be4e45.png" /></p>
+<ul>
+<li>Manual approval can be defined at any stage of the pipeline</li>
+<li><strong>For manual approval, the owner must be AWS</strong></li>
+<li>We can setup an SNS topic to send an email to the user for manual approval.</li>
+<li>The user must have <code>codepipeline:GetPipeline*</code> permission to view the pipeline and <code>codepipeline:PutApprovalResult</code> permission to approve the pipeline.</li>
+</ul>
+<h1 id="cloudformation-integration">CloudFormation Integration</h1>
+<p><img src="/_resources/38423f9c3ebe464db012313e709ab0c8.png" /></p>
+<p>CloudFormation can be integrated with CodePipeline to create a test stack and delete it after the tests have been run. If all the tests pass, another CloudFormation step can deploy the app on production.</p>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

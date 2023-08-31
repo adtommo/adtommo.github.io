@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>S3 - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">S3</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692795315145"
+                  >2023-08-23 13:55</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692804548157"
+                  >2023-08-23 16:29</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Storage &amp; Querying</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Global Service</li>
+<li>Object store (key-value pairs)</li>
+<li>Buckets must have a globally unique name</li>
+<li><strong>Buckets are defined at the regional level</strong></li>
+<li>Objects have a key (full path to the object):<br />
+<code>s3://my_bucket/my_folder/another_folder/my_file.txt</code></li>
+<li>The key is composed of bucket + <em>prefix</em> + <strong>object name</strong><br />
+<code>s3://my_bucket*/my_folder/another_folder/***my_file.txt**</code></li>
+<li>There’s no concept of directories within buckets (just keys with very long names that contain slashes)</li>
+<li><strong>Max Object Size: 5TB</strong></li>
+<li>Durability: 99.999999999% (total 11 9's)</li>
+</ul>
+<blockquote>
+<p>S3 delivers <strong>strong read-after-write consistency</strong> (if an object is overwritten and immediately read, S3 always returns the latest version of the object). However, <strong>bucket configuration is eventually consistent</strong> (if you delete a bucket and immediately list all buckets, the deleted bucket might still appear in the list).</p>
+</blockquote>
+<h1 id="bucket-versioning">Bucket Versioning</h1>
+<ul>
+<li>Enabled at the bucket level</li>
+<li>Protects against unintended deletes</li>
+<li>Ability to restore to a previous version</li>
+<li>Any file that is not versioned prior to enabling versioning will have version <code>null</code></li>
+<li>Suspending versioning does not delete the previous versions, just disables it for the future</li>
+<li>To restore a deleted object, delete it's <strong>delete marker</strong></li>
+</ul>
+<blockquote>
+<p>Versioning can only be suspended once it has been enabled. Once you version-enable a bucket, it can never return to an un-versioned state.</p>
+</blockquote>
+<h1 id="encryption">Encryption</h1>
+<h2 id="encryption-at-rest">Encryption at Rest</h2>
+<ul>
+<li>Can be enabled at the bucket level or at the object level</li>
+<li><strong>Server Side Encryption (SSE)</strong>
+<ul>
+<li>
+<p><strong>SSE-S3</strong></p>
+<ul>
+<li>Keys managed by S3</li>
+<li>AES-256 encryption</li>
+<li>HTTP or HTTPS can be used</li>
+<li>Must set header: <code>"x-amz-server-side-encryption": "AES256"</code></li>
+</ul>
+</li>
+<li>
+<p><strong>SSE-KMS</strong></p>
+<ul>
+<li>
+<p>Keys managed by KMS</p>
+</li>
+<li>
+<p>HTTP or HTTPS can be used</p>
+</li>
+<li>
+<p>KMS provides control over who has access to what keys as well as audit trails</p>
+</li>
+<li>
+<p>Envelope encryption is used in this case. The user uploading the file must have <code>kms:GenerateDataKey</code> permission.</p>
+</li>
+<li>
+<p>Decreases API calls made to KMS (and hence cost) by 99% (recommended if a a lot of objects have to be encrypted in S3)</p>
+</li>
+<li>
+<p>Less KMS events in CloudTrail</p>
+</li>
+<li>
+<p>Headers to be set</p>
+<ul>
+<li><code>"x-amz-server-side-encryption": "aws:kms"</code></li>
+<li><code>x-amz-server-side-encryption-aws-kms-key-id</code></li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/8b5c032e73614687bc0fc8a0defc1170.png" />{width=50%}</p>
+</li>
+<li>
+<p><strong>SSE-C</strong></p>
+<ul>
+<li>
+<p>Keys managed by the client</p>
+</li>
+<li>
+<p>Client sends the key in HTTPS headers for encryption/decryption (S3 discards the key after the operation)</p>
+</li>
+<li>
+<p><strong>If the client loses the key, they cannot decrypt the object</strong></p>
+</li>
+<li>
+<p><strong>HTTPS must be used</strong> as key (secret) is being transferred</p>
+</li>
+<li>
+<p>Headers to be set</p>
+<p>Must provide the following request headers:</p>
+<ul>
+<li><code>x-amz-server-side-encryption-customer-algorithm</code> - This header specifies the encryption algorithm. The header value must be <code>AES256</code>.</li>
+<li><code>x-amz-server-side-encryption-customer-key</code> ****- This header provides the 256-bit, base64-encoded encryption key for Amazon S3 to use to encrypt or decrypt your data.</li>
+<li><code>x-amz-server-side-encryption-customer-key-MD5</code> ****- This header provides the base64-encoded 128-bit MD5 digest of the encryption key according to RFC 1321. Amazon S3 uses this header for a message integrity check to ensure the encryption key was transmitted without error.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Client Side Encryption</strong>
+<ul>
+<li>Keys managed by the client</li>
+<li>Client encrypts the object before sending it to S3 and decrypts it after retrieving it from S3</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>Enforcing Encryption:</strong></p>
+<ul>
+<li><strong>Default encryption</strong>: encrypt the files using the default encryption (specify the encryption for the file while uploading to override the default)</li>
+<li>Bucket policy can be used to force a specific type of encryption on the objects uploaded to S3</li>
+</ul>
+</blockquote>
+<h2 id="encryption-in-transit">Encryption in Transit</h2>
+<ul>
+<li>Enforce HTTPS connection by creating an S3 bucket policy that denies incoming request where <code>SecureTransport</code> is <code>false</code></li>
+</ul>
+<h1 id="access-management">Access Management</h1>
+<ul>
+<li><strong>User based security</strong>
+<ul>
+<li>IAM policies define which API calls should be allowed for a specific user</li>
+<li>Preferred over bucket policy for <strong>fine-grained access control</strong></li>
+</ul>
+</li>
+<li><strong>Resource based security (Bucket Policy)</strong>
+<ul>
+<li>Grant <strong>public access</strong> to the bucket</li>
+<li>Force objects to be encrypted at upload</li>
+<li>Cross-account access</li>
+<li>Object Access Control List (ACL) - applies to the objects while uploading</li>
+<li>Bucket Access Control List (ACL) - access policy that applies to the bucket</li>
+</ul>
+</li>
+<li><strong>Pre-signed URL (Query String Authentication)</strong></li>
+</ul>
+<blockquote>
+<p>An IAM principal can access an S3 object if the IAM permission allows it or the bucket policy allows it and there is no explicit deny.</p>
+</blockquote>
+<blockquote>
+<p>By default, an S3 object is owned by the account that uploaded it even if the bucket is owned by another account. To get full access to the object, the object owner must explicitly grant the bucket owner access. As a bucket owner, you can create a bucket policy to require external users to grant <code>bucket-owner-full-control</code> when uploading objects so the bucket owner can have full access to the objects.</p>
+</blockquote>
+<h1 id="s3-static-websites">S3 Static Websites</h1>
+<ul>
+<li>Host static websites (may contain <strong>client-side scripts</strong>) and have them accessible on the public internet over <strong>HTTP only</strong> (for HTTPS, use CloudFront with S3 bucket as the origin)</li>
+<li>The website URL will be either of the following:
+<ul>
+<li><code>&lt;bucket-name&gt;.s3-website-&lt;region&gt;.amazonaws.com</code></li>
+<li><code>&lt;bucket-name&gt;.s3-website.&lt;region&gt;.amazonaws.com</code></li>
+</ul>
+</li>
+<li>If you get a <code>403 Forbidden</code> error, make sure the bucket policy allows public reads</li>
+<li>For cross-origin access to the S3 bucket, we need to enable CORS on the bucket</li>
+</ul>
+<blockquote>
+<p>To host an S3 static website on a custom domain using Route 53, the bucket name should be the same as your domain or subdomain. Ex. for subdomain <code>portal.tutorialsdojo.com</code>, the name of the bucket must be <code>portal.tutorialsdojo.com</code></p>
+</blockquote>
+<h1 id="mfa-delete">MFA Delete</h1>
+<ul>
+<li>MFA required to
+<ul>
+<li>permanently delete an object version</li>
+<li>suspend versioning on the bucket</li>
+</ul>
+</li>
+<li><strong>Bucket Versioning must be enabled</strong></li>
+<li>Can only be enabled or disabled by the root user</li>
+</ul>
+<h1 id="access-logs">Access Logs</h1>
+<ul>
+<li>Most detailed way of logging access to S3 buckets</li>
+<li>Does not support <strong>Data Events</strong> &amp; <strong>Log File Validation</strong> (use CloudTrail for that)</li>
+<li>Store S3 access logs into another bucket</li>
+<li>Logging bucket should not be the same as monitored bucket (logging loop)</li>
+</ul>
+<h1 id="cloudtrail-logging">CloudTrail Logging</h1>
+<ul>
+<li>Bucket level API access logs enabled by default</li>
+<li>Object level API access logs not enabled by default</li>
+<li>Bucket owner needs to be the object owner to get object access logs</li>
+</ul>
+<h1 id="replication">Replication</h1>
+<ul>
+<li><strong>Asynchronous replication</strong></li>
+<li>Objects are replicated with the <strong>same version ID</strong> and tags</li>
+<li>Supports <strong>cross-region</strong> and <strong>cross-account</strong> replication</li>
+<li><strong>Versioning must be enabled for source and destination buckets</strong></li>
+<li>For DELETE operations:
+<ul>
+<li>Replicate delete markers from source to target (optional)</li>
+<li>Permanent deletes are not replicated</li>
+</ul>
+</li>
+<li>There is <strong>no chaining of replication</strong>. So, if bucket 1 has replication into bucket 2, which has replication into bucket 3. Then objects created in bucket 1 are not replicated to bucket 3.</li>
+<li><strong>Lifecycle actions are not replicated</strong></li>
+<li><strong>Can be configured at the S3 bucket level, prefix level, or object level using S3 object tags</strong></li>
+</ul>
+<h1 id="pre-signed-url">Pre-signed URL</h1>
+<ul>
+<li>Pre-signed URLs for S3 have temporary access token as query string parameters which allow anyone with the URL to temporarily access the resource before the URL expires (default 1h)</li>
+<li>Pre-signed URLs inherit the permission of the user who generated it</li>
+<li>Uses:
+<ul>
+<li>Allow only logged-in users to download a premium video</li>
+<li>Allow users to upload files to a precise location in the bucket</li>
+</ul>
+</li>
+</ul>
+<h1 id="storage-classes">Storage Classes</h1>
+<ul>
+<li>Data can be transitioned between storage classes manually or automatically using lifecycle rules</li>
+<li>Data can be put directly into any storage class</li>
+<li><strong>Standard</strong>
+<ul>
+<li><strong>99.99% availability</strong></li>
+<li>Most expensive</li>
+<li>Instant retrieval</li>
+<li>No cost on retrieval (only storage cost)</li>
+<li>For frequently accessed data</li>
+</ul>
+</li>
+<li><strong>Infrequent Access</strong>
+<ul>
+<li>For data that is infrequently accessed, but requires rapid access when needed</li>
+<li>Lower storage cost than Standard but <strong>cost on retrieval</strong></li>
+<li>Can <strong>move data into IA from Standard only after 30 days</strong></li>
+<li>Two types:
+<ul>
+<li><strong>Standard IA</strong>
+<ul>
+<li><strong>99.9% Availability</strong></li>
+</ul>
+</li>
+<li><strong>One-Zone IA</strong>
+<ul>
+<li><strong>99.5% Availability</strong></li>
+<li>Data is lost if AZ fails</li>
+<li>Storage for infrequently accessed data that can be easily recreated</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Glacier</strong>
+<ul>
+<li>For data archival</li>
+<li>Cost for storage and retrieval</li>
+<li><strong>Can move data into Glacier from Standard anytime</strong></li>
+<li><strong>Objects cannot be directly accessed, they first need to be restored</strong> which could take some time (depending on the tier) to fetch the object.</li>
+<li><strong>Default encryption for data at rest and in-transit</strong></li>
+<li>Three types:
+<ul>
+<li><strong>Glacier Instant Retrieval</strong>
+<ul>
+<li><strong>99.9% availability</strong></li>
+<li>Millisecond retrieval</li>
+<li>Minimum storage duration of <strong>90 days</strong></li>
+<li>Great for data accessed once a quarter</li>
+</ul>
+</li>
+<li><strong>Glacier Flexible Retrieval</strong>
+<ul>
+<li><strong>99.99% availability</strong></li>
+<li>3 retrieval flexibility (decreasing order of cost):
+<ul>
+<li>Expedited (1 to 5 minutes)
+<ul>
+<li>Can <strong>provision retrieval capacity</strong> for reliability</li>
+<li>Without provisioned capacity expedited retrievals might be rejected in situations of high demand</li>
+</ul>
+</li>
+<li>Standard (3 to 5 hours)</li>
+<li>Bulk (5 to 12 hours)</li>
+</ul>
+</li>
+<li>Minimum storage duration of <strong>90 days</strong></li>
+</ul>
+</li>
+<li><strong>Glacier Deep Archive</strong>
+<ul>
+<li><strong>99.99% availability</strong></li>
+<li>2 flexible retrieval:
+<ul>
+<li>Standard (12 hours)</li>
+<li>Bulk (48 hours)</li>
+</ul>
+</li>
+<li>Minimum storage duration of <strong>180 days</strong></li>
+<li>Lowest cost</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Intelligent Tiering</strong>
+<ul>
+<li><strong>99.9% availability</strong></li>
+<li>Moves objects automatically between Access Tiers based on usage</li>
+<li>Small monthly monitoring and auto-tiering fee</li>
+<li><strong>No retrieval charges</strong></li>
+</ul>
+</li>
+</ul>
+<h2 id="moving-between-storage-classes">Moving between Storage Classes</h2>
+<p>In the diagram below, transition can only happen in the downward direction</p>
+<p><img src="/_resources/c2e7dea529c2411dafaa6f06e8e64114.png" />{width=60%}</p>
+<h1 id="lifecycle-rules">Lifecycle Rules</h1>
+<ul>
+<li>Used to automate transition or expiration actions on S3 objects</li>
+<li><strong>Transition Action</strong> (transitioned to another storage class)</li>
+<li><strong>Expiration Action</strong> (delete objects after some time)
+<ul>
+<li>delete a version of an object</li>
+<li>delete incomplete multi-part uploads</li>
+</ul>
+</li>
+<li>Lifecycle Rules can be created for the bucket or prefix (ex <code>s3://mybucket/mp3/*</code>) or object tags (ex Department: Finance)</li>
+</ul>
+<h1 id="s3-analytics">S3 Analytics</h1>
+<ul>
+<li>Provides analytics to determine when to transition data into different storage classes</li>
+<li><strong>Does not work for ONEZONE_IA &amp; GLACIER</strong></li>
+</ul>
+<h1 id="performance">Performance</h1>
+<ul>
+<li>3,500 PUT/COPY/POST/DELETE and 5,500 GET/HEAD requests per second per prefix</li>
+<li>Recommended to <strong>spread data across prefixes for maximum performance</strong></li>
+<li>SSE-KMS may create bottleneck in S3 performance</li>
+<li>Performance Optimizations
+<ul>
+<li><strong>Multi-part Upload</strong>
+<ul>
+<li>parallelizes upload</li>
+<li><strong>recommended for files &gt; 100MB</strong></li>
+<li><strong>must use for files &gt; 5GB</strong></li>
+<li>To perform a multipart upload with encryption using a KMS customer master key (CMK), the requester must have permission to the <strong><code>kms:Decrypt</code></strong>  and <strong><code>kms:GenerateDataKey*</code></strong> actions on the key. These permissions are required because Amazon S3 must decrypt and read data from the encrypted file parts before it completes the multipart upload.</li>
+</ul>
+</li>
+<li><strong>Byte-range fetches</strong>
+<ul>
+<li>Parallelize download requests by fetching specific byte ranges in each request</li>
+<li>Better resilience in case of failures since we only need to refetch the failed byte range and not the whole file</li>
+</ul>
+</li>
+<li><strong>S3 Transfer Acceleration</strong>
+<ul>
+<li>Speed up <strong>upload and download</strong> for <strong>large objects (&gt;1GB)</strong> for <strong>global users</strong></li>
+<li>Data is ingested at the nearest edge location and is transferred over AWS private network (uses CloudFront internally)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="s3-notification-events">S3 Notification Events</h1>
+<ul>
+<li>Optional</li>
+<li>Generates events for operations performed on the bucket or objects</li>
+<li>Object name filtering using prefix and suffix matching</li>
+<li><strong>For the same combination of prefix and event type, we can only have one event rule.</strong> Example: we can send S3 notification for object created at <code>/files</code> to only one destination (single rule).</li>
+<li>Targets
+<ul>
+<li>SNS topics</li>
+<li><strong>SQS Standard</strong> queues (not FIFO queues)</li>
+<li>Lambda functions</li>
+</ul>
+</li>
+</ul>
+<h1 id="s3-select">S3 Select</h1>
+<ul>
+<li>Select a subset of data from S3 using <strong>SQL queries</strong> (<strong>server-side filtering</strong>)</li>
+<li>If the file is stored in S3 Glacier, it is called <strong>Glacier Select</strong></li>
+<li>Less network cost</li>
+<li>Less CPU cost on the client-side</li>
+</ul>
+<p><img src="/_resources/f6a6650cd5c14caca1cbe5e896fce976.png" />{width=50%}</p>
+<h1 id="s3-access-points">S3 Access Points</h1>
+<p><strong>It simplifies managing access to objects stored in the S3 buckets when the complexity of access pattern grows.</strong> It allows having a simple bucket policy and moving the complexity of defining access at the access point level using <strong>Access Point Policies</strong>.</p>
+<p><strong>Each Access Point has a unique DNS name (public or private)</strong> through which it can be accessed. In case of a private DNS name, it can be reached through a <strong>VPC Interface Endpoint</strong>. The VPC endpoint policy must allow access to the target bucket and access point.</p>
+<p><strong>Example:</strong> If Finance and Sales teams need to have read and write access to <code>/finance</code> and <code>/sales</code> objects stored in the bucket whereas the Analytics team needs read access to both of these prefixes. Instead of using bucket policy to manage access for all these sets of users, we can create access points for Finance, Sales and Analytics teams. The finance access point will have a policy to allow read/write access to <code>/finance</code> prefix; similarly for sales access point. The analytics access point will have a policy to allow read access to the entire bucket.</p>
+<p><img src="/_resources/d33ec40f0fbe420f87d1bcf34cb5a2a6.png" /></p>
+<h1 id="s3-object-lambda">S3 Object Lambda</h1>
+<p><strong>It allows us to modify the object dynamically, using a Lambda function, when it is fetched.</strong> The application queries the <strong>S3 Object Lambda Access Point</strong> which invokes the Lambda function to fetch the object from an S3 Access Point and make the required modifications.</p>
+<p>Use cases:</p>
+<ul>
+<li>Redacting PII during analytics</li>
+<li>Resizing and watermarking images</li>
+</ul>
+<p><img src="/_resources/6bcd769f620c45878edaf38965451a69.png" />{width=70%}</p>
+<h1 id="object-metadata-tags">Object Metadata &amp; Tags</h1>
+<ul>
+<li>Object Metadata
+<ul>
+<li>Metadata (key-value pairs) about the objects stored in S3</li>
+<li>Some metadata is defined by AWS</li>
+<li>User-defined metadata keys must begin with <code>x-amz-meta-</code> and are stored in <strong>lowercase</strong> format.</li>
+</ul>
+</li>
+<li>Object Tags
+<ul>
+<li>Tags (key-value pairs) for objects in S3</li>
+<li>Used to group objects to provide <strong>fine-grained access control</strong> and run <strong>analytics</strong></li>
+</ul>
+</li>
+<li><strong>Cannot search on metadata or tags directly in S3</strong> (need to build a search index in an external DB)</li>
+</ul>
+<p><img src="/_resources/780b712e755c4146b9fe844c895832f2.png" />{width=50%}</p>
+<h1 id="security">Security</h1>
+<ul>
+<li>
+<p><code>aws:SecureTransport</code> - policy condition to enforce SSL requests to objects stored in an S3 bucket</p>
+</li>
+<li>
+<p>If the client-side JS in an S3 website fetches some resource from another origin (hosted on S3), CORS needs to be enabled in the bucket containing the assets to allow requests from all origins (or selected origin). <code>MaxAgeSeconds</code> is used as the TTL for browser to cache the pre-flight response.</p>
+<p><img src="/_resources/375a1015d35d4b7f8ee04ea171642958.png" /></p>
+</li>
+</ul>
+<h1 id="misc">Misc</h1>
+<ul>
+<li>If two writes are made to a single non-versioned object at the same time, it is possible that only a single event notification will be sent. If you want to ensure that an event notification is sent for every successful write, you can enable versioning on your bucket. With versioning, every successful write will create a new version of your object and will also send event notification.</li>
+<li>To ensure SSE-KMS on the bucket, add a bucket policy which denies any <code>s3:PutObject</code> action unless the request includes the <code>x-amz-server-side-encryption</code> header.</li>
+<li><code>x-amz-server-side-encryption-aws-kms-key-id</code> header is used to enforce SSE-KMS using a specific KMS key.</li>
+<li><strong>S3 Object Ownership</strong> setting can be used to make the bucket owner default owner of uploaded objects in the bucket.</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

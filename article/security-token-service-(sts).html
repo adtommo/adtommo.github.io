@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Security Token Service (STS) - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Security Token Service (STS)</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692787012717"
+                  >2023-08-23 11:36</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692800278803"
+                  >2023-08-23 15:17</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Auth &amp; Security</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><ul>
+<li>Used to <strong>grant limited and temporary access</strong> (<strong>15 min - 1 hour</strong>) to AWS resources</li>
+</ul>
+<h1 id="apis">APIs</h1>
+<ul>
+<li><code>AssumeRole</code> - assume an IAM Role within your account or <strong>cross account</strong> and return temporary credentials for that role</li>
+<li><code>AssumeRoleWithSAML</code> - return credentials for users logged in with SAML</li>
+<li><code>AssumeRoleWithWebldentity</code> - return credentials for users logged in via a web identity provider like Facebook, Google, OIDC compatible IDP, etc.</li>
+<li><code>GetSessionToken</code> - get session token for MFA</li>
+<li><code>GetFederationToken</code> - obtain temporary credentials for a federated user</li>
+<li><code>GetCallerldentity</code> - return details about the lAM user or role</li>
+<li><code>DecodeAuthorizationMessage</code> - decode error message when an AWS API is denied</li>
+</ul>
+<h2 id="assumerole"><code>AssumeRole</code></h2>
+<ul>
+<li>Steps to assume a Role
+<ul>
+<li>Define an IAM Role (within your account or cross-account)</li>
+<li><strong>Trust Policy</strong>: Define which principals can assume this IAM Role</li>
+<li>Call <code>AssumeRole</code> API to impersonate the IAM Role and retrieve credentials</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/7f8a63de88e64f089393462820d6f0e9.png" />{width=50%}</p>
+<p><img src="/_resources/8c7274cad0e246ebbca25af12c36452d.png" />{width=90%}</p>
+<h2 id="getsessiontoken"><code>GetSessionToken</code></h2>
+<ul>
+<li>Used to get session token for MFA</li>
+<li>Returns
+<ul>
+<li>Access ID</li>
+<li>Secret Key</li>
+<li>Session Token</li>
+<li>Expiration Date</li>
+</ul>
+</li>
+<li>IAM policy can be created to allow some actions only if the user is multi-factor authenticated (<code>aws:MultiFactorAuthPresent: true</code>)<br />
+<img src="/_resources/433db85f686a447aab4ae54e7abee8aa.png" />{width=70%}</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

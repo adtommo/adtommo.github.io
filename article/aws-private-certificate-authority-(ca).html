@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>AWS Private Certificate Authority (CA) - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">AWS Private Certificate Authority (CA)</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692787965889"
+                  >2023-08-23 11:52</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692800504033"
+                  >2023-08-23 15:21</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Auth &amp; Security</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><ul>
+<li><strong>Used to create Private CA</strong> (root or subordinate) which can then issue and deploy <strong>X.509 certificates</strong> (can only be used by applications, cannot be used to create other certificates)</li>
+<li>Private TLS certificates are trusted only within your organization (not the public internet)</li>
+<li>Private CA integrates with ELB, API Gateway, CloudFront and <strong>EKS</strong> to load private certificates.</li>
+<li>Usually used to build a <strong>Public Key Infrastructure (PKI)</strong> within an enterprise.</li>
+</ul>
+<p><img src="/_resources/6d40d77c9eb04da2a5698eaae6df9747.png" />{width=60%}</p>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

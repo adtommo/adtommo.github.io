@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Amplify - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Amplify</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692783161539"
+                  >2023-08-23 10:32</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692801325864"
+                  >2023-08-23 15:35</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Infrastructure</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Used to build mobile and web applications</li>
+<li><code>amplify init</code> - initialize an amplify project</li>
+<li>Provides features such as data storage, authentication, ML, etc. (all powered by AWS services)</li>
+<li>Provides front-end libraries with ready to use components for popular frameworks like React, Vue, Flutter, etc.</li>
+</ul>
+<h1 id="offerings">Offerings</h1>
+<ul>
+<li><strong>Amplify Studio</strong>: Visually build a full-stack app (front-end Ul and backend)</li>
+<li><strong>Amplify CLI</strong>: Configure an Amplify backend with a guided CLI workflow</li>
+<li><strong>Amplify Libraries</strong>: Connect your app to existing AWS services</li>
+<li><strong>Amplify Hosting</strong>: Host web apps via the AWS <strong>CDN</strong></li>
+</ul>
+<h1 id="auth">Auth</h1>
+<ul>
+<li>Provides authentication out of the box (<code>amplify add auth</code>)</li>
+<li>Leverages <a href="/article/cognito">Cognito</a></li>
+<li>Supports MFA, Social Sign-in (federated identities), Account Recovery, etc.</li>
+<li>Provides pre-built UI components to integrate in the front-end</li>
+<li>Provides fine-grained authorization</li>
+</ul>
+<h1 id="graphql-api-data-store">GraphQL API &amp; Data Store</h1>
+<ul>
+<li>Provides <strong>GraphQL API using AppSync</strong> and DynamoDB as the data store (<code>amplify add api</code>)</li>
+<li>Work with data locally with automatic synchronization to the cloud (offline and real-time capabilities)</li>
+<li>Visual data modeling using Amplify Studio</li>
+</ul>
+<h1 id="hosting">Hosting</h1>
+<ul>
+<li>Host web applications (<code>amplify add hosting</code>)</li>
+<li>Support for CICD, PR Reviews, Custom Domains, Monitoring, etc.</li>
+<li>Competing with services like <strong>Netlify</strong> and <strong>Vercel</strong>.</li>
+</ul>
+<p><img src="/_resources/e6d3b3ee278c4c8da8d35d830fd0a19e.png" />{width=70%}</p>
+<h1 id="testing">Testing</h1>
+<ul>
+<li><strong>Run unit tests during the build phase</strong> (defined as test step in <code>amplify.yml</code>)</li>
+<li>Run <strong>end-to-end tests during the test phase</strong> before deploying the app in production environment (app is deployed in the testing environment)
+<ul>
+<li>Integrated with <strong>Cypress</strong> E2E testing framework (allows to generate UI report for the tests)<br />
+<img src="/_resources/06f0aa97f6184a8f82a03af2a86f39d3.png" /></li>
+</ul>
+</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

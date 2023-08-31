@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>AppSync - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">AppSync</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692789075251"
+                  >2023-08-23 12:11</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692801967390"
+                  >2023-08-23 15:46</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Messaging</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><p><img src="/_resources/f66f88a04ffa42ab9f6938707105f048.png" /></p>
+<h1 id="intro">Intro</h1>
+<ul>
+<li>AWS managed service that uses <strong>GraphQL</strong></li>
+<li>Need to upload a GraphQL schema to AppSync</li>
+<li>Integrated with CloudWatch for logging</li>
+<li>Integrated with X-Ray for Tracing</li>
+</ul>
+<h1 id="use-cases">Use cases</h1>
+<ul>
+<li>
+<p><strong>Building GraphQL APIs</strong></p>
+<p><img src="/_resources/ec0040f6f5a447bc93d9f3b0bdf49dcf.png" /></p>
+<ul>
+<li>GraphQL responses may include data from one or more sources (NoSQL DB, SQL DB, other APIs)</li>
+<li>Optional caching functionality to reduce load on the data source</li>
+<li><strong>Resolvers have direct integration with DynamoDB, Aurora and OpenSearch</strong>.</li>
+<li>Lambda function can be used to get data from any source.</li>
+<li>Resolvers can fetch data from other HTTP APIs as well.</li>
+</ul>
+</li>
+<li>
+<p><strong>Retrieve data in real-time</strong> with <strong>WebSocket</strong> or <strong>MQTT</strong> on WebSocket</p>
+</li>
+<li>
+<p><strong>Offline data synchronization</strong> in mobile devices</p>
+</li>
+</ul>
+<h1 id="security">Security</h1>
+<ul>
+<li><strong>To get HTTPS on AppSync with a custom domain, use CloudFront in front of AppSync</strong></li>
+<li>4 ways to authorize applications to interact with AppSync GraphQL API:
+<ul>
+<li><code>API_KEY</code> - generate an API key and give it to the customer</li>
+<li><code>AWS_IAM</code> - authorize IAM users or roles / <strong>cross-account access</strong></li>
+<li><code>AMAZON_COGNITO_USER_POOLS</code> - AWS managed IDP for external users</li>
+<li><code>OPENID_CONNECT</code> - 3rd party OIDC compatible IDP for external users</li>
+</ul>
+</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

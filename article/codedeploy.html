@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>CodeDeploy - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">CodeDeploy</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692718504498"
+                  >2023-08-22 16:35</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692800075900"
+                  >2023-08-23 15:14</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">CICD</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li><strong>AWS managed CD server</strong> to automatically deploy the latest version of the application.</li>
+<li>To use CodeDeploy, we first need to create an Application (in CodeDeploy console) with the correct compute platform configured. Then, create a Deployment Group with the compute resource tagged. Then, we can create a deployment with the correct application build artifact.</li>
+</ul>
+<h1 id="components">Components</h1>
+<ul>
+<li>Application - the build artifact (archived) we want to deploy</li>
+<li><strong>Compute Platform</strong> - what platform the application will be deployed to
+<ul>
+<li>EC2 or On-Premises (<strong>CodeDeploy Agent</strong> must be installed)</li>
+<li>AWS Lambda</li>
+<li>Amazon ECS</li>
+</ul>
+</li>
+<li>Deployment Configuration - set of deployment rules for successful deployment
+<ul>
+<li>EC2/On-premises - specify the minimum number of healthy instances for the deployment</li>
+<li>AWS Lambda or Amazon ECS - specify how traffic is routed to your updated versions</li>
+</ul>
+</li>
+<li><strong>Deployment Group</strong> - group of tagged EC2 instances (allows to deploy gradually, ex: first deploy to <code>dev</code>, then <code>test</code> and then <code>prod</code>)</li>
+<li><strong>IAM Instance Profile</strong> - give EC2 instances the permissions to access S3 or GitHub</li>
+<li><strong>Application Revision</strong> = build artifact + <code>appspec.yaml</code> file</li>
+<li><strong>Service Role</strong> - IAM Role for CodeDeploy to perform operations on EC2 instances, ASGs, ELBs for deployment</li>
+<li>Target Revision - the most recent revision that you want to deploy to a Deployment Group</li>
+</ul>
+<h1 id="workflow">Workflow</h1>
+<ul>
+<li>The developer or CI server builds and pushes the application revision (build artifact + <code>appspec.yaml</code>) on S3 or GitHub.</li>
+<li>The developer triggers a new deployment in CodeDeploy.</li>
+<li>The CodeDeploy Agent running on the compute resource continuously polls CodeDeploy to check if a new deployment needs to be done.</li>
+</ul>
+<p><img src="/_resources/9b8f094c367c4c538a606f6849391465.png" />{width=50%}</p>
+<ul>
+<li>The build artifact and <code>appspec.yaml</code> are downloaded to the compute resource and the CodeDeploy Agent runs the deployment instructions mentioned in <code>appspec.yaml</code>.</li>
+</ul>
+<h1 id="appspecyaml"><code>appspec.yaml</code></h1>
+<ul>
+<li>Specifies how the build artifact should be deployed.</li>
+<li>Should be present at the root of the bundle.</li>
+<li><code>files</code> - what to copy from S3 or GitHub into the deployment server</li>
+<li><code>hooks</code> - set of instructions to deploy the new application version:
+<ul>
+<li><strong>ValidateService</strong> (checks if the application is running properly after installation)</li>
+</ul>
+</li>
+<li>Can have timeouts in any step (hook)</li>
+<li><code>hooks</code> section for EC2 instances is shown to the right.</li>
+</ul>
+<p><img src="/_resources/7f63d4cdbb224f458114f2ce9b27c933.png" />{width=50%}</p>
+<ul>
+<li>
+<p>Order of hooks for different compute resources</p>
+<ul>
+<li>Lambda: BeforeAllowTraffic &gt; AfterAllowTraffic</li>
+<li>EC2: BeforeInstall → AfterInstall → ApplicationStart → ValidateService</li>
+<li>ECS: BeforeInstall → AfterInstall → AfterAllowTestTraffic → BeforeAllowTraffic → AfterAllowTraffic</li>
+</ul>
+</li>
+<li>
+<p>The content in the <code>resources</code> section varies, depending on the compute platform of your deployment. For Lambda functions, it has <code>name</code>, <code>alias</code>, <code>currentversion</code> and <code>targetversion</code>.</p>
+<p><img src="/_resources/9c3ff65a275b4e65a4ab7dbc010b327b.png" /></p>
+</li>
+</ul>
+<h1 id="deployment-type">Deployment Type</h1>
+<p>It is the method used to deploy the application to a Deployment Group.</p>
+<ul>
+<li><strong>In-place Deployment</strong> - supports EC2, On-Premise Server
+<ul>
+<li><strong>One at a time - one EC2 instance at time, if one instance fails then deployment stops</strong></li>
+<li><strong>Half at a time - 50% healthy instances even if the deployment fails</strong></li>
+<li><strong>All at once - quick but has downtime (good for dev)</strong></li>
+<li><strong>Custom - specify the minimum percentage of healthy hosts</strong></li>
+</ul>
+</li>
+<li><strong>Blue/Green Deployment</strong> - supports EC2 instances, AWS Lambda, and Amazon ECS</li>
+</ul>
+<p><img src="/_resources/2c5f6290558b433aa11af12fa026ba79.png" /></p>
+<blockquote>
+<p>Lambda functions don’t support in-place deployment</p>
+</blockquote>
+<h1 id="failures-rollbacks">Failures &amp; Rollbacks</h1>
+<ul>
+<li>Once deployment fails, EC2 instances stay in failed state</li>
+<li>New deployments will first be deployed to failed instances</li>
+<li>To rollback, redeploy old deployment or enable automated rollback on failures</li>
+<li>If a rollback happens, CodeDeploy redeploys the last known good revision with a new deployment ID (does not restore to a previous version).</li>
+</ul>
+<h1 id="troubleshooting">Troubleshooting</h1>
+<ul>
+<li><code>InvalidSignatureException</code> - the date or time in CodeDeploy (AWS) does not match that in the EC2 instance where the application is to be deployed</li>
+<li>If the deployment fails on EC2, check deployment log files at <code>/opt/codedeploy-agent/deployment-root/deployment-logs/codedeploy-agent-deployments.log</code></li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

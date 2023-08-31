@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Step Functions - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Step Functions</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692712405671"
+                  >2023-08-22 14:53</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692800816974"
+                  >2023-08-23 15:26</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Compute</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><p><img src="/_resources/038a85ae78e047d5ae2e993974164bb6.png" /></p>
+<h1 id="intro">Intro</h1>
+<ul>
+<li><strong>Serverless</strong> workflow orchestration</li>
+<li>Model workflows as state machines (1 state machine per workflow)</li>
+<li>Written in JSON</li>
+<li><strong>Visual workflow execution</strong></li>
+<li>Execution event history shows the input and output of each step</li>
+<li>Step function has <strong>amazing error handling capabilities</strong> (can be offloaded from the application)</li>
+</ul>
+<h1 id="task">Task</h1>
+<p><img src="/_resources/2ff32ed3333c4aa283f36549e94106d7.png" />{width=50%}</p>
+<ul>
+<li>Each task in the workflow could perform an action on an AWS service or launch another step function workflow.</li>
+<li>Task definition to invoke a Lambda function</li>
+</ul>
+<p><img src="/_resources/2d56040c92f84a12b2bda16c64e15a78.png" /></p>
+<h1 id="states">States</h1>
+<ul>
+<li><strong>Choice State</strong> - Test for a condition to send to a branch (or default branch)</li>
+<li><strong>Fail or Succeed State</strong> - Stop execution with failure or success</li>
+<li><strong>Pass State</strong> - Simply pass its input to its output or inject some fixed data</li>
+<li><strong>Wait State</strong> - Provide a delay for a certain amount of time or until a specified time or date</li>
+<li><strong>Map State</strong> - Dynamically iterate steps</li>
+<li><strong>Parallel State</strong> - Begin parallel branches of execution (<strong>asynchronous</strong> execution)</li>
+<li><strong>Task State</strong> - Run some code <strong>synchronously</strong></li>
+</ul>
+<h1 id="error-handling">Error Handling</h1>
+<ul>
+<li>Handle errors in the state machine instead of the application code. This makes the application logic simpler. Also, step functions provide execution history.</li>
+<li>Predefined error codes:
+<ul>
+<li><code>States.ALL</code> - any error</li>
+<li><code>States.Timeout</code> -  task ran longer than <code>TimeoutSeconds</code> or no heartbeat received</li>
+<li><code>States.TaskFailed</code> - task execution failure</li>
+<li><code>States.Permissions</code> - insufficient privileges to execute code</li>
+</ul>
+</li>
+<li>The state can also throw custom errors that can be caught in the step function (eg. a Lambda function throwing a custom error)</li>
+</ul>
+<h2 id="retry">Retry</h2>
+<p><img src="/_resources/0c4405d6b35d4b6f9bdd9dca68709314.png" />{width=80%}</p>
+<ul>
+<li>Retry failed state</li>
+<li><code>Retry</code> block is evaluated top to bottom</li>
+<li><code>BackoffRate</code> - what factor the <code>IntervalSeconds</code> should be multiplied with at each retry</li>
+<li>When <code>MaxAttempts</code> are reached, the <code>Catch</code> block kicks in</li>
+</ul>
+<h2 id="catch"><strong>Catch</strong></h2>
+<p><img src="/_resources/e36181f026284c2086edad90a6e0774e.png" />{width=80%}</p>
+<ul>
+<li>Transition to failed path</li>
+<li><code>Catch</code> block is evaluated top to bottom</li>
+<li>After all the retries have been exhausted, the state function goes into <code>Catch</code></li>
+<li>If the error is of X type, go to the next state Y.</li>
+<li><code>ResultPath</code> - a path that determines what input is sent to the state specified in the <code>Next</code> field. Example: it can be used to send the error to the <code>Next</code> state.</li>
+</ul>
+<p><img src="/_resources/674167065acc437f8d355ea106aadb1b.png" /></p>
+<h1 id="wait-for-task-token">Wait for Task Token</h1>
+<ul>
+<li>Used to integrate the workflow with an external task where the external task must finish the job before the workflow proceeds further.</li>
+<li><strong>Push-based</strong> (the task pushes the work to the external application or worker which after completion invokes a callback API)</li>
+<li>The task is paused until it receives the callback (API call) with the <code>TaskToken</code></li>
+<li>Append <code>.waitForTaskToken</code> to the <code>Resource</code> field to tell Step Functions to wait for the Task Token to be returned.<br />
+Example: <code>"Resource": "arn:aws:states:::sqs:sendMessage.waitForTaskToken"</code></li>
+<li><strong>Working</strong>: The step function is paused during the <code>Check Credit</code> task execution, where we pass the <code>TaskToken</code> to the external application (push to SQS). After the external application is done processing, it makes a <code>SendTaskSuccess</code> API call with the result of processing and the passed <code>TaskToken</code>. This means the external task was executed successfully and the step function can continue execution. If the external application fails to process, it makes a <code>SendTaskFailure</code> API call which is treated as task failed.<br />
+<img src="/_resources/37abc9eb61f642e78cde9373ca0f2ca5.png" /></li>
+</ul>
+<h1 id="activity-tasks">Activity Tasks</h1>
+<ul>
+<li><strong>Activity Workers</strong> (running on any compute resource) poll the workflow for tasks using <code>GetActivityTask</code> API.</li>
+<li>If an activity worker gets a task, it will complete it and send the response of success or failure as <code>SendTaskSuccess</code> or <code>SendTaskFailure</code> API call.</li>
+<li><strong>Pull-based</strong> (tasks are pulled by the Activity Workers)</li>
+<li><code>TaskToken</code> is used to identify which task got completed (same way as in Wait for Task Token)</li>
+<li>To keep the Task active:
+<ul>
+<li>Configure <code>TimeoutSeconds</code> on the step function - how long the task will wait for the activity worker to complete (max 1 year)</li>
+<li>Send heartbeats periodically from the activity worker to the task using <code>SendTaskHeartBeat</code> at an interval less than <code>HeartBeatSeconds</code> parameter (set in the step function).</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/ecd97d96e7e24998ab9bc9dfcaeb48ad.png" />{width=50%}</p>
+<h1 id="workflow-types">Workflow Types</h1>
+<p><img src="/_resources/ea801410518347e4aeefa856c97900a8.png" />{width=50%}</p>
+<h2 id="standard-workflows-default">Standard Workflows (default)</h2>
+<ul>
+<li>Max duration: 1 year</li>
+<li>Execution model: <strong>Exactly-once Execution</strong></li>
+<li>Execution rate: Over 2,000 workflow executions per sec</li>
+<li>Execution history: <strong>90 days in the console</strong> (send to CloudWatch to retain for longer)</li>
+<li>Pricing: based on the number of state transitions</li>
+<li>Use cases: <strong>Non-idempotent actions</strong> (eg. payment processing)</li>
+</ul>
+<h2 id="express-workflows">Express Workflows</h2>
+<ul>
+<li>Max duration: 5 min</li>
+<li>Execution rate: Over 100,000 workflow executions per sec</li>
+<li>Execution history: Not available in the console (must use CloudWatch)</li>
+<li>Use cases: IoT data ingestion, streaming data, backend for apps, etc.</li>
+<li>Types:
+<ul>
+<li><strong>Asynchronous</strong> Express Workflows
+<ul>
+<li>Execution model: <strong>At-least Once Execution</strong> (the operation must be idempotent because there could be retries)</li>
+<li>When the workflow is invoked, it just starts and doesn’t return the result of computation.</li>
+<li>Use cases: where we don’t need immediate response (eg. messaging services)</li>
+</ul>
+</li>
+<li><strong>Synchronous</strong> Express Workflows
+<ul>
+<li>Execution model: <strong>At-most Once Execution</strong></li>
+<li>When the workflow is invoked, it completes it and returns the response.</li>
+<li>Can be invoked from <strong>API Gateway</strong> or <strong>Lambda function</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

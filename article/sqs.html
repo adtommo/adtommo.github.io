@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>SQS - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">SQS</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692788339317"
+                  >2023-08-23 11:58</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692801946119"
+                  >2023-08-23 15:45</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Messaging</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Used to asynchronously decouple applications</li>
+<li>Supports multiple producers &amp; consumers</li>
+<li>The consumer polls the queue for messages. Once a consumer processes a message, it deletes it from the queue using <code>DeleteMessage</code> API.</li>
+<li>Unlimited number of messages in queue</li>
+<li>Max 10 messages received per batch (configured using <code>MaxNumberOfMessages</code> parameter in the <code>ReceiveMessage</code> API)</li>
+<li><strong>Max message size: 256 KB</strong></li>
+<li><strong>Default message retention: 4 days (max: 14 days)</strong></li>
+<li><strong>Consumers could be EC2 instances or Lambda functions</strong></li>
+<li>Queue type cannot be changed once created</li>
+</ul>
+<blockquote>
+<p>SQS cannot ingest data, it must be sent to the queue by the producer (use KDS or KDF instead)</p>
+</blockquote>
+<h1 id="queue-types">Queue Types</h1>
+<h2 id="standard-queue">Standard Queue</h2>
+<ul>
+<li>Unlimited throughput (publish any number of message per second into the queue)</li>
+<li>Low latency (&lt;10 ms on publish and receive)</li>
+<li>Can have duplicate messages (at least once delivery)</li>
+<li>Can have out of order messages (best effort ordering)</li>
+</ul>
+<h2 id="fifo-queue">FIFO Queue</h2>
+<ul>
+<li>Limited throughput
+<ul>
+<li>300 msg/s without batching (batch size = 1)</li>
+<li>3000 msg/s with batching (batch size = 10)</li>
+</ul>
+</li>
+<li><strong>The queue name must end with</strong> <code>.fifo</code> to be considered a FIFO queue</li>
+<li><strong>Message De-duplication</strong>
+<ul>
+<li><strong>De-duplication interval: 5 min</strong> (duplicate messages will be discarded only if they are sent less than 5 mins apart)</li>
+<li>De-duplication methods:
+<ul>
+<li><strong>Content-based de-duplication</strong>: computes the hash of the message body and compares</li>
+<li><strong>Using a message de-duplication ID</strong>: messages with the same de-duplication ID are considered duplicates</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Message Grouping</strong>
+<ul>
+<li>Group messages based on <code>MessageGroupID</code> to send them to different consumers</li>
+<li>Same value for <code>MessageGroupID</code>
+<ul>
+<li>All the messages are in order</li>
+<li>Single consumer</li>
+</ul>
+</li>
+<li>Different values for <code>MessageGroupID</code>
+<ul>
+<li>Messages will be ordered for each group ID</li>
+<li>Ordering across groups is not guaranteed</li>
+<li><strong>Each group ID can have a different consumer</strong> (parallel processing)</li>
+<li>Max number of consumers = number of unique group IDs</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="encryption">Encryption</h1>
+<ul>
+<li>In-flight encryption using HTTPS API</li>
+<li>At-rest server-side encryption:
+<ul>
+<li>SSE-SQS: keys managed by SQS</li>
+<li>SSE-KMS: keys managed by KMS</li>
+</ul>
+</li>
+<li>Client-side encryption</li>
+</ul>
+<h1 id="access-management">Access Management</h1>
+<ul>
+<li><strong>IAM Policies</strong> to regulate access to the SQS API</li>
+<li><strong>SQS Access Policies</strong> (resource based policy)
+<ul>
+<li>
+<p>Used for cross-account access to SQS queues</p>
+<p>The example policy allows any resource in the account 111122223333 to poll the SQS queue for messages.</p>
+<p><img src="/_resources/74320d5835ee4776a10acb58f0199af1.png" />{width=50%}</p>
+</li>
+<li>
+<p>Used for allowing other AWS services to send messages to an SQS queue</p>
+<p>The example policy allows any AWS account to send messages to the queue as long as it is coming from the desired S3 bucket and the source account is the one owning the bucket.</p>
+<p><img src="/_resources/a6f508786a0f45f4a7cbcfdf771a1ea9.png" />{width=50%}</p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="configurations">Configurations</h1>
+<h2 id="message-visibility-timeout">Message Visibility Timeout</h2>
+<p><img src="/_resources/60d10d13e538493288badf6ae3d79178.png" /></p>
+<ul>
+<li>Once a message is polled by a consumer, it becomes invisible to other consumers for the duration of message visibility timeout. After the message visibility timeout is over, the message becomes visible in the queue if it is not deleted by the consumer.</li>
+<li>If a consumer dies while processing the message, it will be visible in the queue after the visibility timeout.</li>
+<li>If a message is not processed within the visibility timeout, it will be processed again (by another consumer). However, a consumer could call the <code>ChangeMessageVisibility</code> API to change the visibility timeout for that specific message. This will give the consumer more time to process the message.</li>
+<li><strong>Default: 30s</strong></li>
+<li>Can be configured for the entire queue
+<ul>
+<li>High: if the consumer crashes, re-processing will take long</li>
+<li>Low: may get duplicate processing of messages</li>
+</ul>
+</li>
+</ul>
+<h2 id="queue-delay">Queue Delay</h2>
+<ul>
+<li>Consumers see the message after some delay</li>
+<li>Default: 0 (Max: 15 min)</li>
+<li>Can be set at the queue level</li>
+<li>Can override the default queue delay for a specific message using the <code>DelaySeconds</code> parameter in the <code>SendMessage</code> API</li>
+</ul>
+<h2 id="long-polling">Long Polling</h2>
+<ul>
+<li>Poll the queue for longer</li>
+<li>Decreases the number of API calls made to SQS (<strong>cheaper</strong>)</li>
+<li>Reduces latency (incoming messages during the polling will be read instantaneously)</li>
+<li><strong>Polling time: 1 sec to 20 sec</strong></li>
+<li>Long Polling is preferred over Short Polling</li>
+<li>Can be enabled at the queue level or at the consumer level by using <code>WaitTimeSeconds</code> parameter in <code>ReceiveMessage</code> API.</li>
+</ul>
+<h2 id="dead-letter-queue-dlq">Dead Letter Queue (DLQ)</h2>
+<ul>
+<li>An SQS queue used to store failing to be processed messages in another queue</li>
+<li>After the <code>MaximumReceives</code> threshold is exceeded, the message goes into the DLQ</li>
+<li><strong>Redrive to Source</strong> - once the bug in the consumer has been resolved, messages in the DLQ can be sent back to the queue (original queue or a custom queue) for processing</li>
+<li><strong>DLQ must be of the same type as the original queue</strong></li>
+<li>Recommended to set a high retention period for DLQ (14 days)</li>
+</ul>
+<h1 id="handling-priority">Handling Priority</h1>
+<p>Use two SQS queues, one for low priority (ex. free) and the other for high priority (ex. paid). Configure your consuming application to only poll the low priority queue if the high priority queue is empty.</p>
+<h1 id="sqs-extended-client">SQS Extended Client</h1>
+<p>To send messages larger than 256 KB (limit in SQS) or files to consumers to process, upload it in S3 and send a message in the queue with a pointer to that file in S3. This is implemented under the hood in the SQS extended client Java library.</p>
+<p><img src="/_resources/762662d5952c4976a390db075c7cf5a8.png" /></p>
+<h1 id="consumer-auto-scaling">Consumer Auto Scaling</h1>
+<p>We can attach an ASG to the consumer instances which will scale based on the <code>CW metric = Queue length / Number of EC2 instances</code>. CW alarms can be triggered to step scale the consumer application.</p>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

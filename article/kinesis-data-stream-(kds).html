@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Kinesis Data Stream (KDS) - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Kinesis Data Stream (KDS)</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692788706936"
+                  >2023-08-23 12:05</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692801886320"
+                  >2023-08-23 15:44</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Messaging</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><p><img src="/_resources/66fe134c6f544ad6961341231c8671c8.png" /></p>
+<h1 id="intro">Intro</h1>
+<ul>
+<li>Real-time data streaming service</li>
+<li><strong>Used to ingest data in real time directly from source</strong></li>
+<li><strong>Not Serverless</strong></li>
+<li><strong>Data Retention: 1 day (default) to 365 days</strong></li>
+<li>A record consists of a <strong>partition key</strong> and data blob (<strong>max 1MB</strong>)</li>
+<li><strong>Once data is inserted in KDS, it can’t be modified or deleted (immutability)</strong></li>
+<li>Records will be ordered in each shard</li>
+<li>Producers use SDK, Kinesis Producer Library (KPL) or <strong>Kinesis Agent</strong> to publish records</li>
+<li>Consumers use SDK or Kinesis Client Library (KCL) to consume the records</li>
+<li>Ability to re-process (<strong>replay</strong>) data</li>
+</ul>
+<h2 id="capacity-modes"><strong>Capacity Modes</strong></h2>
+<ul>
+<li><strong>Provisioned</strong>
+<ul>
+<li>Publishing: 1MB/sec per shard or 1000 msg/sec per shard</li>
+<li>Consuming:
+<ul>
+<li><strong>Shared</strong>: 2MB/sec per shard (throughput shared between all consumers)</li>
+<li><strong>Enhanced Fanout</strong>: 2MB/sec per shard per consumer (dedicated throughput for each consumer)</li>
+</ul>
+</li>
+<li>Throughput scales with shards (<strong>manual scaling</strong>)</li>
+<li>Pay per shard provisioned per hour</li>
+</ul>
+</li>
+<li><strong>On-demand</strong>
+<ul>
+<li>No need to provision or manage the capacity (shards)</li>
+<li>Default capacity provisioned - <strong>4 MB/sec or 4000 records/sec</strong></li>
+<li>Scales automatically based on observed throughput peak during the last 30 days</li>
+<li>Pay per stream per hour &amp; data in/out per GB</li>
+</ul>
+</li>
+</ul>
+<h1 id="security">Security</h1>
+<ul>
+<li><strong>KDS is present outside the VPC.</strong> VPC endpoints can be used to access Kinesis from within the VPC.</li>
+<li>Access control for producing/consuming using IAM</li>
+<li>In-flight encryption using HTTPS</li>
+<li><strong>Server-side at-rest encryption</strong> using KMS or client-side encryption</li>
+</ul>
+<p><img src="/_resources/b1a62f8efb294136a9744530760e7b57.png" />{width=50%}</p>
+<h1 id="producers">Producers</h1>
+<ul>
+<li>Producers can be:
+<ul>
+<li><strong>AWS SDK</strong> - simple producer</li>
+<li><strong>Kinesis Producer Library (KPL)</strong> - handles batching, compression and retries</li>
+<li><strong>Kinesis Agent</strong> - uses KPL to stream log files</li>
+</ul>
+</li>
+<li><code>PutRecord</code> API is used to publish a record in KDS</li>
+<li><strong>Batching</strong> in <code>PutRecord</code> API <strong>reduces cost and increases throughput</strong> (automatically done by KPL)</li>
+<li>Partition key is passed through a hashing function to determine the shard. Use a well distributed field in the data as the partition key to avoid <strong>hot partition</strong> where most of the data is sent to a single shard.</li>
+<li>Going above the throughput limit (1 MB/s or 1000 records/sec) for any shard will cause <code>ProvisionedThroughputExceeded</code> exception. Possible solutions:
+<ul>
+<li>Retries with exponential backoff</li>
+<li>Ensure the partition key is well distributed</li>
+<li>Split the shards (increase number of shards)</li>
+</ul>
+</li>
+<li><strong>Use KPL to achieve high write throughput in KDS</strong></li>
+<li>Embed a primary key within the record to handle duplicate records on the consumer side</li>
+</ul>
+<h1 id="consumers">Consumers</h1>
+<ul>
+<li>Consumers can be:
+<ul>
+<li>AWS Lambda</li>
+<li>Kinesis Data Analytics</li>
+<li>Kinesis Data Firehose</li>
+<li>Custom Consumer (AWS SDK) – consume at a low level (need to manage complexities)</li>
+<li>Kinesis Client Library (KCL) - consume at a high level (complexities already managed)</li>
+</ul>
+</li>
+</ul>
+<h2 id="classic-shared-consumer">Classic (Shared) Consumer</h2>
+<ul>
+<li>Read throughput: 2 MB/sec per shard<br />
+shared across all consumers</li>
+<li><strong>Consumers poll data from KDS</strong> using<br />
+<code>GetRecords</code> API call (<strong>pull-based</strong>)</li>
+<li>Good for small number of consumers</li>
+<li>Limit of 5 <code>GetRecords</code> API calls/sec per shard</li>
+<li>Latency ~200 ms (polling)</li>
+<li>Low cost</li>
+<li>Returns up to 10 MB or up to 10,000 records then throttle for 5 seconds</li>
+</ul>
+<h2 id="enhanced-fan-out-consumer">Enhanced Fan-Out Consumer</h2>
+<ul>
+<li>Read throughput: 2 MB/sec per shard<br />
+dedicated for each consumer</li>
+<li><strong>Consumers subscribe to a shard</strong> using <code>SubscribeToShard</code> API. KDS pushes data to consumers (<strong>push-based</strong>)</li>
+<li>Good for large number of consumers</li>
+<li>Latency ~ 70 ms (event driven)</li>
+<li>High cost</li>
+<li>Default soft limit of 5 consumers per data stream</li>
+</ul>
+<p><img src="/_resources/c51618eaf97d4130b7ac3276abbf17ce.png" /></p>
+<h2 id="lambda-as-consumer">Lambda as Consumer</h2>
+<ul>
+<li>Supports classic and enhanced fan-out</li>
+<li>Can read records in batches (configure using batch size and batch window)</li>
+<li>Can process up to 10 batches per shard simultaneously</li>
+<li>Automatic retries on error until success or data expires in KDS</li>
+</ul>
+<h1 id="kinesis-client-library-kcl">Kinesis Client Library (KCL)</h1>
+<ul>
+<li>A <strong>Java</strong> library that helps read record from KDS with <strong>distributed applications</strong> sharing the read workload</li>
+<li><strong>Maximum number of KCL instances = number of shards</strong></li>
+<li><strong>KCL checkpoints the read progress into DynamoDB</strong> (the application running KCL needs the IAM permissions)</li>
+<li>By checkpointing in DynamoDB, KCL instances of an application track each other to divide the shards among themselves.</li>
+<li>KCL can run on any compute resource (cloud or <strong>on-premise</strong>)</li>
+<li>Records are read in order at the shard level</li>
+<li>Versions:
+<ul>
+<li>KCL 1.x (supports shared consumer)</li>
+<li>KCL 2.x (supports shared &amp; enhanced fan-out consumer)</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/ce7f63c46ebb4d8ea3b9d7efe15c0214.png" />{width=50%}</p>
+<p><img src="/_resources/b673a94afd244ed0982f7305d64f1a3d.png" />{width=50%}</p>
+<h2 id="shard-splitting">Shard Splitting</h2>
+<ul>
+<li>Split a <strong>hot shard</strong> (high traffic) into 2 shards</li>
+<li>Increases the stream capacity by equivalent of adding 1 shard</li>
+<li>The old shard is closed and will be deleted when the data in it expires</li>
+<li>Can’t split more than 2 shards in a single operation</li>
+</ul>
+<p><img src="/_resources/f1e0e071337b4c9aa9abb7f3f3e7991d.png" />{width=50%}</p>
+<h2 id="shard-merging">Shard Merging</h2>
+<ul>
+<li>Merge two <strong>cold shards</strong> (low traffic) into a single shard</li>
+<li>Decreases the stream capacity by equivalent of removing 1 shard</li>
+<li>Old shards are closed and will be deleted when the data in them expires</li>
+<li>Can’t merge more than 2 shards in a single operation</li>
+</ul>
+<p><img src="/_resources/2854986246de448c83809c0f88de7b6d.png" />{width=50%}</p>
+<h1 id="kinesis-data-firehose-kdf">Kinesis Data Firehose (KDF)</h1>
+<p><img src="/_resources/648b6bfe967242fd914c56d2f5a1473e.png" /></p>
+<ul>
+<li>Used to load streaming data into a target location</li>
+<li><strong>Serverless</strong></li>
+<li><strong>Writes data in batches efficiently (near real time)</strong>
+<ul>
+<li><strong>Buffer size</strong> (size of the batch) - <strong>1 MB to 128MB (default 5MB)</strong></li>
+<li><strong>Buffer interval</strong> (how long to wait for buffer to fill up) - <strong>60s to 900s (default 300s)</strong></li>
+<li>Greater the buffer size, higher the write efficiency, longer it will take to fill the buffer</li>
+</ul>
+</li>
+<li><strong>Can ingest data in real time directly from source</strong></li>
+<li><strong>Auto-scaling</strong></li>
+<li>Destinations:
+<ul>
+<li>AWS: Redshift, S3, <strong>OpenSearch</strong></li>
+<li>3rd party: Splunk, MongoDB, DataDog, NewRelic, etc.</li>
+<li>Custom HTTP endpoint</li>
+</ul>
+</li>
+<li>Pay for data going through Firehose (no provisioning)</li>
+<li><strong>Custom data transformation using Lambda functions</strong> (not supported in KDS)</li>
+<li><strong>No replay capability</strong> (does not store data like KDS)</li>
+</ul>
+<h1 id="kinesis-data-analytics-kda">Kinesis Data Analytics (KDA)</h1>
+<h2 id="kda-for-sql">KDA for SQL</h2>
+<p><img src="/_resources/453fca2b9b3e459bb0950e335fbc1903.png" /></p>
+<ul>
+<li>Perform <strong>real-time analytics on Kinesis streams</strong> using <strong>SQL</strong></li>
+<li>Creates streams from SQL query response</li>
+<li><strong>Cannot ingest data directly from source</strong> (ingests data from <strong>KDS</strong> or <strong>KDF</strong>)</li>
+<li><strong>Auto-scaling</strong></li>
+<li><strong>Serverless</strong></li>
+<li>Pay for the data processed (no provisioning)</li>
+<li>Use cases:
+<ul>
+<li>Time-series analytics</li>
+<li>Real-time dashboards</li>
+<li>Real-time metrics</li>
+</ul>
+</li>
+</ul>
+<h2 id="kda-for-apache-flink">KDA for Apache Flink</h2>
+<p><img src="/_resources/a0c661cdf735405d9fbb26007b27a721.png" /></p>
+<ul>
+<li>Use Flink (Java, Scala or SQL) to process and analyze streaming data (advanced querying capability)</li>
+<li>Can ingest data from <strong>KDS</strong> or <strong>MSK</strong> (to ingest data from KDF, use KDA for SQL)</li>
+<li>Used to run Apache Flink application on a managed cluster on AWS
+<ul>
+<li>provisioning compute resources, parallel computation, automatic scaling</li>
+<li>application backups (implemented as checkpoints and snapshots)</li>
+</ul>
+</li>
+</ul>
+<h1 id="kinesis-video-streams">Kinesis Video Streams</h1>
+<ul>
+<li>Capture, process and store video streams</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

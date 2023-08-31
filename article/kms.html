@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>KMS - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">KMS</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692787437264"
+                  >2023-08-23 11:43</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692800186405"
+                  >2023-08-23 15:16</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Auth &amp; Security</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>
+<p><strong>Regional service (keys are bound to a region)</strong></p>
+</li>
+<li>
+<p>Provides encryption and decryption of data and manages keys required for it</p>
+</li>
+<li>
+<p>Encrypted secrets can be stored in the code or environment variables</p>
+</li>
+<li>
+<p><strong>Encrypt up to 4KB of data per API call (if data &gt; 4 KB, use envelope encryption)</strong></p>
+</li>
+<li>
+<p>Integrated with lAM for authorization</p>
+</li>
+<li>
+<p>Audit key usage with CloudTrail</p>
+</li>
+<li>
+<p>Need to set <strong>IAM Policy &amp; Key Policy</strong> to allow a user or role to access a KMS key (encrypt or decrypt data using the key)</p>
+<p><img src="/_resources/c7d63b11b5e646149b715baebf3f325d.png" /></p>
+</li>
+<li>
+<p>Pay for the number of API calls made to KMS</p>
+</li>
+<li>
+<p><strong>Does not support versioning of keys</strong> (cannot get back the old key)</p>
+</li>
+</ul>
+<h1 id="kms-keys-formerly-customer-master-key">KMS Keys (formerly Customer Master Key)</h1>
+<h2 id="symmetric-keys">Symmetric keys</h2>
+<ul>
+<li>AES-256 encryption</li>
+<li><strong>Must call KMS API to encrypt data</strong></li>
+<li>Necessary for Envelope Encryption</li>
+<li>Two types:
+<ul>
+<li><strong>AWS Managed Keys</strong> (free)
+<ul>
+<li>Default KMS key for each supported service</li>
+<li>Fully managed by AWS (cannot view, rotate or delete them)</li>
+<li>Automatic yearly rotation</li>
+</ul>
+</li>
+<li><strong>Customer Managed Keys</strong> (1$ per month)
+<ul>
+<li>Generated in KMS
+<ul>
+<li>Optional automatic yearly rotation</li>
+</ul>
+</li>
+<li>Generated and imported from outside
+<ul>
+<li>Must be 256-bit symmetric key</li>
+<li>Not recommended</li>
+<li>Manual rotation only</li>
+</ul>
+</li>
+<li>Deletion has a waiting period (<strong>pending deletion state</strong>) between <strong>7 - 30 days</strong> (default 30 days). The key can be recovered during the pending deletion state.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="asymmetric-keys">Asymmetric Keys</h2>
+<ul>
+<li>Public (Encrypt) and Private Key (Decrypt) pair</li>
+<li>Used for Encrypt/Decrypt, or Sign/Verify operations</li>
+<li>The public key is downloadable, but you can’t access the Private Key unencrypted</li>
+<li><strong>No need to call the KMS API to encrypt data</strong> (data can be encrypted by the client)</li>
+<li><strong>Not eligible for automatic rotation</strong> (use manual rotation)</li>
+<li>Use case: encryption outside of AWS by users who can’t call the KMS API</li>
+</ul>
+<h1 id="key-policies">Key Policies</h1>
+<ul>
+<li><strong>Cannot access KMS keys without a key policy attached to them</strong></li>
+</ul>
+<h2 id="default-key-policy"><strong>Default Key Policy</strong></h2>
+<ul>
+<li>
+<p>Created by default if you don’t provide a custom key policy</p>
+</li>
+<li>
+<p>Full access to the key for any user or role in the account (most permissible)</p>
+<p><img src="/_resources/65b89fb90d2048f7b98148d5fcff5016.png" />{width=60%}</p>
+</li>
+</ul>
+<h2 id="custom-key-policy"><strong>Custom Key Policy</strong></h2>
+<ul>
+<li><strong>Can only be applied to customer owned keys</strong></li>
+<li>Define users, roles that can access the KMS key</li>
+<li>Define who can administer the key</li>
+<li>Useful for <strong>cross-account access</strong> of your KMS key</li>
+</ul>
+<h1 id="cross-region-encrypted-snapshot-migration">Cross-region Encrypted Snapshot Migration</h1>
+<p><img src="/_resources/10696093ed48455aaad17caf6207fd1a.png" />{width=80%}</p>
+<ul>
+<li>Create an encrypted snapshot of the EBS volume (can be decrypted by the same key)</li>
+<li>Copy the encrypted snapshot to another region with <strong>re-encryption option</strong> using a new key in the new region (keys are bound to a region)</li>
+<li>Restore the EBS volume in the new region.</li>
+</ul>
+<h1 id="cross-account-encrypted-snapshot-migration">Cross-account Encrypted Snapshot Migration</h1>
+<ul>
+<li>
+<p>Attach a Key Policy to the main key to authorize access to an IAM role in the target account (cross-account access)</p>
+<p><img src="/_resources/7084a59609644f6f99319f45366e0912.png" />{width=70%}</p>
+</li>
+<li>
+<p>Share the encrypted snapshot with the new account</p>
+</li>
+<li>
+<p>In the target account, create a copy of the snapshot (decryption will use the main key)</p>
+</li>
+<li>
+<p>Encrypt it with a new KMS Key in the target account</p>
+</li>
+</ul>
+<h1 id="envelope-encryption">Envelope Encryption</h1>
+<h2 id="encryption-phase">Encryption Phase</h2>
+<p><img src="/_resources/3295b767adce45538bd50c0b13b56126.png" />{width=90%}</p>
+<p>To encrypt a file larger than 4 KB, we call the <code>GenerateDataKey</code> API which returns a <strong>Data Encryption Key (DEK)</strong> in both plaintext and encrypted form (using the KMS key specified in the command, requires the user to have IAM permissions to encrypt using the KMS key). The DEK (symmetric) is used to <strong>encrypt the large file client-side</strong>. Then, an envelope is created which contains the encrypted file as well as the encrypted DEK. The data is now encrypted and the the plaintext DEK can be discarded.</p>
+<h2 id="decryption-phase">Decryption Phase</h2>
+<p><img src="/_resources/9b39c9d7561b4b1b98869f94fc3669c0.png" />{width=90%}</p>
+<p>The encrypted DEK (&lt; 4 KB) is extracted from the envelope and passed to the <code>Decrypt</code> API which returns the decrypted DEK (only if the user has permissions to use the KMS key to decrypt data). The plaintext DEK is then used to <strong>decrypt the large file client-side</strong>.</p>
+<h1 id="apis">APIs</h1>
+<ul>
+<li><code>Encrypt</code> - encrypt up to 4 KB of data</li>
+<li><code>GenerateDataKey</code> - generate a unique <strong>symmetric</strong> DEK for <strong>Envelope Encryption</strong> (returns both plaintext and encrypted data key using the KMS key specified in the command)</li>
+<li><code>GenerateDataKeyWithoutPlaintext</code> - generate a DEK to use in the <strong>future</strong> (returns the encrypted DEK only)</li>
+<li><code>Decrypt</code> - decrypt up to 4 KB of data (could be DEK)</li>
+<li><code>GenerateRandom</code> - generate a random byte string.</li>
+</ul>
+<h1 id="aws-encryption-sdk">AWS Encryption SDK</h1>
+<ul>
+<li><strong>Implements Envelope Encryption</strong> (difficult to implement manually)</li>
+<li>Available in Java, Python, C, JS and also as a CLI tool</li>
+<li><strong>Data Key Caching</strong>
+<ul>
+<li>Re-use data keys (DEK) (instead of generating them for each encryption)</li>
+<li><strong>Reduces the number of API calls to KMS</strong> (cheaper) but not as secure as generating distinct data keys for each encryption.</li>
+<li>Leverages <code>LocalCryptoMaterialsCache</code> feature</li>
+</ul>
+</li>
+</ul>
+<h1 id="limits">Limits</h1>
+<ul>
+<li>All cryptographic operations within the AWS account that leverage keys managed by KMS (eg. SSE-KMS) share the same request quota (on a per second basis)</li>
+<li>Exceeding the request quota gives <code>ThrottlingException</code> (status code: 400). Possible solutions:
+<ul>
+<li>Exponential backoff</li>
+<li>For <code>GenerateDataKey</code>, <strong>enable DEK Caching</strong> in Encryption SDK</li>
+<li>Request quota increase</li>
+</ul>
+</li>
+<li>Example: if a lot of objects are being uploaded to an S3 bucket with SSE-KMS, there can be performance degradation due to KMS API throttling.</li>
+</ul>
+<h1 id="supported-key-operations">Supported Key Operations</h1>
+<ul>
+<li>Create symmetric and asymmetric keys</li>
+<li>Import your own symmetric key</li>
+<li>Create both symmetric and asymmetric data key pairs</li>
+<li>Define which IAM users and roles can manage keys</li>
+<li>Define which IAM users and roles can use keys to encrypt and decrypt data</li>
+<li>Choose to have keys that were generated by the service to be automatically rotated on an annual basis.</li>
+<li><strong>Temporarily disable keys</strong> so they cannot be used by anyone</li>
+<li><strong>Re-enable disabled keys</strong></li>
+<li><strong>Schedule deletion of keys</strong></li>
+<li><strong>Audit key usage</strong> using CloudTrail</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

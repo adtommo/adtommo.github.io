@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Cognito - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Cognito</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692783270381"
+                  >2023-08-23 10:34</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692800471398"
+                  >2023-08-23 15:21</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Auth &amp; Security</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="cognito-user-pools-cup-authentication">Cognito User Pools (CUP) - Authentication</h1>
+<p><img src="/_resources/04b640a5697e4d8bb9487e35ef7f96af.png" />{width=90%}</p>
+<ul>
+<li><strong>Serverless</strong> OIDC-compliant identity provider (provides sign in functionality for app users)</li>
+<li>Returns JWT (used to verify the identity of the user)</li>
+<li><strong>MFA support</strong></li>
+<li><strong>Supports Federated Identities</strong> allowing users to authenticate via third party identity provider like Facebook, Google, SAML, etc.</li>
+<li>Seamless integration with <strong>API Gateway</strong> &amp; <strong>ALB</strong> for authentication</li>
+</ul>
+<p><img src="/_resources/67e145e7a08346549a4b0f174d3d12a4.png" /></p>
+<h2 id="cognito-hosted-ui"><strong>Cognito Hosted UI</strong></h2>
+<ul>
+<li>AWS created login and signup page (can be customized using images and CSS)</li>
+<li>To host the hosted UI on a custom domain, we must create an ACM certificate in <code>us-east-1</code></li>
+</ul>
+<h2 id="lambda-triggers"><strong>Lambda Triggers</strong></h2>
+<p>CUP can invoke lambda functions <strong>synchronously</strong> on certain events</p>
+<p><img src="/_resources/c99ae920f6a642b3b302a2477fee4232.png" /></p>
+<h2 id="adaptive-authentication">Adaptive Authentication</h2>
+<ul>
+<li>If enabled, <strong>sign-in attempts may be blocked or require MFA if they seem suspicious</strong></li>
+<li>Cognito examines each sign-in attempt and generates a risk score</li>
+<li>In case of compromised credentials, there is email and phone verification</li>
+<li>Logged in CloudWatch</li>
+</ul>
+<h2 id="alb-integration">ALB Integration</h2>
+<ul>
+<li><strong>Must use an HTTPS listener</strong></li>
+<li>Authentication can be done using CUP or <strong>any OIDC compliant IDP</strong></li>
+</ul>
+<h1 id="cognito-identity-pools-cip-authorization">Cognito Identity Pools (CIP) - Authorization</h1>
+<p><img src="/_resources/5698c5590ecb4f7eabfb0ceff7d5e9e2.png" /></p>
+<ul>
+<li><strong>Provides temporary credentials</strong> (using STS) to users, after they have been authenticated, so they can access AWS resources.</li>
+<li>Use CUP or any OIDC compliant IDP for authentication</li>
+<li>Allows unauthenticated guest access</li>
+<li>Example use case: provide <strong>temporary access to write to an S3 bucket</strong> after authenticating the user via FaceBook (using CUP identity federation)</li>
+</ul>
+<h2 id="access-management">Access Management</h2>
+<ul>
+<li>
+<p>We can create default IAM roles for authenticated and guest users (2 default roles)</p>
+</li>
+<li>
+<p>Create rules to choose the IAM role for each user based on user ID</p>
+</li>
+<li>
+<p>IAM roles must have a <strong>trust policy</strong> of CIP</p>
+</li>
+<li>
+<p>IAM policies for each role can be customized for each user using <strong>policy variables</strong>.</p>
+<ul>
+<li>Example: allowing users access to only their own folder (prefix) in S3</li>
+</ul>
+<p><img src="/_resources/be390128556145a688b8d4df919b91b0.png" /></p>
+<ul>
+<li>Example: allowing users access to only their items in DynamoDB</li>
+</ul>
+<p><img src="/_resources/eed83668e6c74db4b3b4da171fb2396e.png" />{width=90%}</p>
+</li>
+</ul>
+<h1 id="misc">Misc</h1>
+<ul>
+<li>Cognito lets you save end user data in datasets containing key-value pairs. This data is associated with an Amazon Cognito identity, so that it can be accessed across logins and devices. To sync this data between the Amazon Cognito service and an end user’s devices, invoke the <code>synchronize</code> method. Each dataset can have a maximum size of 1 MB. You can associate up to 20 datasets with an identity.</li>
+<li>Cognito supports <strong>developer authenticated identities</strong> to obtain unique identifiers for application users.</li>
+<li>When a user signs in to an application using their username and password, Cognito generates a unique <strong>Cognito ID</strong> for that user. This ID is used to track the user's session and to provide secure access to AWS resources.</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

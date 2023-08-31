@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>DynamoDB - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">DynamoDB</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692794927531"
+                  >2023-08-23 13:48</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692804811286"
+                  >2023-08-23 16:33</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Storage &amp; Querying</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li><strong>SQL databases (RDS &amp; Aurora) are centralized</strong> and <strong>can scale reads by adding read replicas</strong> but they <strong>cannot scale writes (no sharding)</strong>. The only way to scale writes is to <strong>vertically scale the DB</strong>.</li>
+<li>DynamoDB is a <strong>Serverless NoSQL DB</strong> with <strong>replication across multiple AZ</strong>. It is a <strong>distributed NoSQL DB</strong> that <strong>can scale both reads and writes horizontally</strong> to support massive workloads.</li>
+<li>Database is already created and managed by AWS. We only need to create Tables.</li>
+<li>Table classes
+<ul>
+<li>Standard</li>
+<li>Infrequent Access (IA)</li>
+</ul>
+</li>
+<li>Popular option to use as a serverless distributed cache. Latency will be higher than ElastiCache as DynamoDB is not an in-memory store. It stores data on disk.</li>
+<li>Copy a table across account or region (3 options):
+<ul>
+<li>Using AWS Data Pipeline</li>
+<li>Backup and restore into a new table (takes some time but easy)</li>
+<li>Scan and BatchWriteItem (not recommended)</li>
+</ul>
+</li>
+<li><strong>Global Tables</strong> - multi-region, multi-active, replicated tables (need to enable DynamoDB streams)</li>
+<li><strong>DynamoDB Local</strong> - deploy DynamoDB locally for development or testing</li>
+</ul>
+<h1 id="tables">Tables</h1>
+<ul>
+<li>Primary key must be decided at creation time</li>
+<li>Infinite rows (items)</li>
+<li>Attributes (columns) can be added overtime</li>
+<li><strong>Maximum item size: 400 KB</strong></li>
+<li>Supported data types:
+<ul>
+<li><strong>Scalar</strong> - String, Number, Binary, Boolean, Null</li>
+<li><strong>Document</strong> - List, Map</li>
+<li><strong>Set</strong> - String Set, Number Set, Binary Set</li>
+</ul>
+</li>
+</ul>
+<h1 id="primary-keys">Primary Keys</h1>
+<ul>
+<li><strong>Partition Key (Hash)</strong>
+<ul>
+<li>Partition key is hashed to find the location of data</li>
+<li>Partition key must be unique for each item</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/2c801f0c4fc440049761016296d12bb8.png" />{width=50%}</p>
+<ul>
+<li>
+<p><strong>Partition Key (Hash) + Sort Key (Range)</strong></p>
+<ul>
+<li>Partition key is hashed to find the partition and sort key is used to search for the data in that partition</li>
+<li>Combination of partition key and sort key must be unique</li>
+</ul>
+<p><img src="/_resources/109ea90941fd43b796290e9a0a0b56e1.png" />{width=70%}</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>Partition key should be a column in the table that has highest cardinality</strong> to maximize the number of partitions (data distribution). Partition key should also be highly diverse to ensure that the data is distributed equally across partitions.</p>
+</blockquote>
+<blockquote>
+<p><strong>If the partition (hash) key is not highly diverse</strong> (only few unique values)<strong>, add a suffix to the partition key to make the partition key diverse.</strong> The suffix can be generated either randomly or calculated using a hashing algorithm.</p>
+</blockquote>
+<h1 id="read-consistency">Read Consistency</h1>
+<ul>
+<li><strong>Eventually Consistent Read</strong> (default)
+<ul>
+<li>Low latency</li>
+<li>May get stale data (if the replication hasn’t happened yet)</li>
+</ul>
+</li>
+<li><strong>Strongly Consistent Read</strong>
+<ul>
+<li><strong>Consumes twice the RCU</strong></li>
+<li>More latency</li>
+<li>Set <code>ConsistentRead: True</code> in API calls (<code>GetItem</code>, <code>BatchGetltem</code>, <code>Query</code>, <code>Scan</code>) to perform a strongly consistent read</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/89794cee2a5144be98e7aeec0f0b68ed.png" />{width=30%}</p>
+<h2 id="throughput">Throughput</h2>
+<h2 id="capacity-planning">Capacity Planning</h2>
+<ul>
+<li><strong>Read Capacity Units (RCU)</strong>
+<ul>
+<li>Throughput for reads</li>
+<li><strong>1 RCU</strong> ⇒ <strong>1 strongly consistent read per sec</strong> or <strong>2 eventually consistent reads per sec</strong> for an item of <strong>max size 4 KB</strong></li>
+<li>10 eventually consistent reads per sec with item size 6 KB ⇒ [10 / 2 (eventual consistency)] x [8 KB (rounded up) / 4 KB] = 10 RCU</li>
+<li>10 strongly consistent reads per sec with item size 10 KB ⇒ 10 x [12 KB (rounded up) / 4 KB] = 30 RCU</li>
+</ul>
+</li>
+<li><strong>Write Capacity Units (WCU)</strong>
+<ul>
+<li>Throughput for writes</li>
+<li><strong>1 WCU ⇒ 1 write per sec</strong> for an item of <strong>max size 1 KB</strong></li>
+<li>Write 6 items per sec with item size 4.5 KB ⇒ 6 x [5 KB (rounded up) / 1 KB] = 30 WCU</li>
+</ul>
+</li>
+<li><strong>WCU &amp; RCU are divided evenly across partitions</strong> (10 partition &amp; 10 RCU ⇒ 1 RCU for each partition).</li>
+<li>To determine how much of the provisioned capacity is being used, you can monitor <code>ConsumedReadCapacityUnits</code> and <code>ConsumedWriteCapacityUnits</code> over a time period.</li>
+</ul>
+<h2 id="throttling">Throttling</h2>
+<ul>
+<li>If RCU or WCU for any partition is exceeded, the request will throttle and we’ll get <code>ProvisionedThroughputExceededException</code>.</li>
+<li>Reasons for throttling:
+<ul>
+<li><strong>Hot Partitions</strong> (most of the data is read or written to only a few partitions)</li>
+<li><strong>Large item size</strong></li>
+</ul>
+</li>
+<li>Solutions to throttling:
+<ul>
+<li><strong>Exponential backoff (already in SDK)</strong></li>
+<li>Evenly distributed partition keys (to avoid hot partitions)</li>
+<li>DynamoDB Accelerator (DAX)</li>
+</ul>
+</li>
+</ul>
+<h2 id="capacity-modes">Capacity Modes</h2>
+<ul>
+<li><strong>Provisioned</strong>
+<ul>
+<li>Provision RCU and WCU in advance</li>
+<li><strong>Optional throughput auto-scaling</strong> (automatically scales RCU and WCU) based on target utilization
+<ul>
+<li>Example: Min RCU: 1, Max RCU: 100, Target utilization: 70% ⇒
+<ul>
+<li>7 RCUs are being consumed ⇒ provisioned RCU = 10</li>
+<li>35 RCUs are being consumed ⇒ provisioned RCU = 50</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Provisioned throughput can be exceeded temporarily using <strong>Burst Capacity</strong>. Once burst capacity is consumed, we’ll get <code>ProvisionedThroughputExceededException</code>. At this stage, we need to retry with exponential backoff.</li>
+</ul>
+</li>
+<li><strong>On-demand</strong>
+<ul>
+<li>No capacity planning needed (reads and writes auto-scale)</li>
+<li>No throttling</li>
+<li>Pay for the <strong>Read Request Unit (RRU)</strong> and <strong>Write Request Unit (WRU)</strong> consumed. They have the same calculation as RCU and WCU.</li>
+<li>2.5 times more expensive than provisioned mode (use only for unpredictable traffic)</li>
+</ul>
+</li>
+</ul>
+<h1 id="backups">Backups</h1>
+<ul>
+<li>Two types:
+<ul>
+<li><strong>On-demand</strong></li>
+<li><strong>Point-in-time recovery (PITR)</strong> - automatic continuous backups</li>
+</ul>
+</li>
+<li>No performance impact during backups</li>
+<li><strong>Backups are written to S3</strong> under the hood but we cannot access these backup buckets</li>
+</ul>
+<h1 id="apis">APIs</h1>
+<ul>
+<li><code>PutItem</code> - <strong>fully update</strong> the item based on the primary key or create a new item if it does not exist</li>
+<li><code>UpdateItem</code> - <strong>partially update</strong> the item based on the primary key or create a new item if it does not exist</li>
+<li><code>GetItem</code> - <strong>read an item</strong> using the primary key (hash / hash + range)
+<ul>
+<li>Eventually consistent read by default, strongly consistent read optional</li>
+<li><code>ProjectionExpression</code> can be specified to retrieve a subset of attributes</li>
+</ul>
+</li>
+<li><code>Query</code> - <strong>read multiple items based on a query</strong> from a table, LSI or GSI
+<ul>
+<li><code>KeyConditionExpression</code>
+<ul>
+<li>Partition key (=) - required</li>
+<li>Sort key (=, &lt;, ≤, &gt;, ≥, between, begins with) - optional</li>
+</ul>
+</li>
+<li><code>FilterExpression</code>
+<ul>
+<li>Client-side filtering on non-key attributes</li>
+<li>Does not allow partition key or sort key attributes</li>
+</ul>
+</li>
+<li>Returns a list of items where number of items = limit in the query or up to 1 MB of data. To get more data, use pagination.</li>
+</ul>
+</li>
+<li><code>Scan</code> - <strong>scan the entire table</strong> (every partition) and return all the data
+<ul>
+<li>Consumes a lot of RCU</li>
+<li>Recommended to use limit in the scan operation</li>
+<li>Returns up to 1 MB of data (use pagination to get more data)</li>
+<li>Use <code>FilterExpression</code> to filter items and <code>ProjectionExpression</code> to retrieve a subset of attributes (client-side)</li>
+<li><strong>Not recommended</strong> unless you need to read the entire table (Eg. Analytics)</li>
+<li>Use <strong>Parallel Scan</strong> for faster scans
+<ul>
+<li>Multiple workers</li>
+<li>Increases throughput and RCU consumed</li>
+<li>Recommended to use limit in the parallel scan operation</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>DeleteItem</code> - <strong>delete an item</strong>
+<ul>
+<li>Optional conditional delete (Eg. Delete this item only if age &lt; 0)</li>
+</ul>
+</li>
+<li><code>DeleteTable</code> - <strong>delete the whole table</strong> and its items
+<ul>
+<li>Much faster than calling <code>DeleteItem</code> on all the items</li>
+</ul>
+</li>
+<li><code>BatchWriteItem</code> - <strong>write items in a batch of operations</strong> (processed in parallel)
+<ul>
+<li><strong>Max 25 operations</strong> or max 16 MB of data written in a single API call</li>
+<li>Supports <code>PutItem</code> and <code>DeleteItem</code> (does not support <code>UpdateItem</code>)</li>
+<li>Can write to multiple tables in the same batch API call</li>
+<li><code>UnprocessedItems</code> (failed writes) can be retried with exponential backoff</li>
+<li>If the batch write exceeds WCU limits, add more WCU</li>
+</ul>
+</li>
+<li><code>BatchGetItem</code> - <strong>read items in a batch of operations</strong> (processed in parallel)
+<ul>
+<li><strong>Max 100 items</strong> or max 16 MB of data can be read in a single API call</li>
+<li>Can read from multiple tables in the same batch API call</li>
+<li><code>UnprocessedKeys</code> (failed reads) can be retried with exponential backoff</li>
+<li>If the batch read exceeds RCU limits, add more RCU</li>
+</ul>
+</li>
+</ul>
+<h2 id="conditional-writes">Conditional Writes</h2>
+<ul>
+<li>
+<p>Option to specify a <strong>Conditional Expression</strong> to apply the write operation only to the items that satisfy the condition.</p>
+</li>
+<li>
+<p>Supported by <code>PutItem</code>, <code>UpdateItem</code>, <code>DeleteItem</code> and <code>BatchWriteItem</code> APIs</p>
+</li>
+<li>
+<p>Examples</p>
+<p>In the examples below, the values for the variables are passed in <code>values.json</code> file.</p>
+<p><img src="/_resources/f66efc7f83974a85bff4486f5e726ec5.png" />{width=80%}</p>
+<p><img src="/_resources/3d96ad139cad4f41a6c3d27ca36a1d26.png" />{width=80%}</p>
+<p><img src="/_resources/4d9db058c33d41c3a94d168a4e49bc9b.png" />{width=100%}</p>
+<p><img src="/_resources/4da164bfc14f46a19a04e7e3251eb352.png" /></p>
+</li>
+<li>
+<p>Using <code>attribute_not_exists(partition_key)</code> and  <code>attribute_not_exists(sort_key)</code> in our conditional expressions, we can ensure that a data is never overwritten by write commands.</p>
+</li>
+<li>
+<p><strong>Optimistic Locking</strong> - strategy to ensure an item hasn’t changed after you read it and before you update it</p>
+<ul>
+<li>Each item has an attribute <code>Version</code> which is incremented every time the item is updated</li>
+<li>The idea is to read the item and send a write (update or delete) request to DynamoDB with a conditional expression that the version of the item is what you read. If the version gets incremented before updating, the write operation will fail.</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>Filter Expressions are for read operations, whereas Conditional Expressions are for write operations.</p>
+</blockquote>
+<h1 id="secondary-indexes">Secondary Indexes</h1>
+<ul>
+<li>Allow running queries on non-primary key attributes</li>
+<li>Attribute projections - what attributes (columns) to fetch when queried on an index
+<ul>
+<li><code>KEYS_ONLY</code> - only index and primary key attributes</li>
+<li><code>INCLUDE</code> - some attributes (including index and primary key attributes)</li>
+<li><code>ALL</code> - all attributes</li>
+</ul>
+</li>
+</ul>
+<h2 id="local-secondary-index-lsi">Local Secondary Index (LSI)</h2>
+<ul>
+<li>
+<p><strong>Alternative Sort Key</strong> for a table (uses the same partition key)</p>
+</li>
+<li>
+<p>Queries are made to a single partition</p>
+</li>
+<li>
+<p>The sort key of the LSI <strong>must be a scalar attribute</strong> (String, Number or Binary)</p>
+</li>
+<li>
+<p>Max 5 LSI per table</p>
+</li>
+<li>
+<p><strong>Must be defined at table creation time</strong></p>
+</li>
+<li>
+<p><strong>Uses RCU and WCU of the main table</strong> (works on the same table partition)</p>
+</li>
+<li>
+<p><strong>Queries on LSI support both eventual consistency and strong consistency</strong></p>
+</li>
+<li>
+<p>Example</p>
+<p>Create an LSI to query the table to fetch all entries of a user between two game timestamps.</p>
+<p><img src="/_resources/b598121dd6744a0a805339811870f050.png" />{width=80%}</p>
+</li>
+</ul>
+<h2 id="global-secondary-index-gsi">Global Secondary Index (GSI)</h2>
+<ul>
+<li>
+<p><strong>Alternative Primary Key</strong> for a table (Hash or Hash + Sort) to speed up queries on non-key attributes.</p>
+</li>
+<li>
+<p>The hash key and sort key (optional) of the GSI <strong>must be scalar attributes</strong> (String, Number or Binary)</p>
+</li>
+<li>
+<p>Queries are made to the entire database</p>
+</li>
+<li>
+<p><strong>Must provision RCU and WCU</strong> (supports auto-scaling) for GSI since it partitions the same table differently. <strong>If the writes are throttled on the GSI, the main table will be throttled for writes as well.</strong></p>
+</li>
+<li>
+<p><strong>GSIs can be added or modified after table creation</strong></p>
+</li>
+<li>
+<p><strong>Queries on GSI support eventual consistency only</strong></p>
+</li>
+<li>
+<p>Example</p>
+<p>Create a GSI to fetch based on Game ID and timestamp.</p>
+<p><img src="/_resources/953ecdf87a87453ab71fe457a88cbec7.png" />{width=90%}</p>
+</li>
+</ul>
+<h1 id="partiql">PartiQL</h1>
+<ul>
+<li>SQL-compatible query language for DynamoDB</li>
+<li>Can run queries across multiple DynamoDB tables</li>
+<li>Supports some (not all) SQL statements: <code>INSERT</code>, <code>UPDATE</code>, <code>SELECT</code>, <code>DELETE</code> (does not support <code>JOIN</code> operation)</li>
+<li>Supports batch operations</li>
+<li>PartiQL queries can be run from
+<ul>
+<li>AWS Management Console</li>
+<li>NoSQL Workbench for DynamoDB</li>
+<li>DynamoDB APIs</li>
+<li>AWS CLI</li>
+<li>AWS SDK</li>
+</ul>
+</li>
+</ul>
+<h1 id="dynamodb-accelerator-dax">DynamoDB Accelerator (DAX)</h1>
+<ul>
+<li><strong>In-memory distributed cache</strong> for DynamoDB</li>
+<li>Caches reads, queries and individual objects automatically</li>
+<li>Microseconds latency for cached items</li>
+<li><strong>Doesn’t require application code changes</strong> (managed on DB side)</li>
+<li><strong>Solves the Hot Key Problem</strong> (too many reads from a single partition)</li>
+<li>Default 5 min TTL</li>
+<li>Encryption at rest using KMS</li>
+<li>DAX is good for automatic caching of reads and queries made to a DynamoDB table. To cache aggregation results, ElastiCache needs to be used.</li>
+</ul>
+<p><img src="/_resources/e1387560477e4be49e1b37bd18d4b3cb.png" />{width=30%}</p>
+<ul>
+<li>Enable DAX and provision nodes for the DAX cluster
+<ul>
+<li>Multi-AZ recommended (min 3 nodes) in production</li>
+<li><strong>Max 10 nodes in a cluster</strong></li>
+<li>Node types:
+<ul>
+<li><strong>r-type</strong>: fixed resource with always-capacity (recommended for higher throughput)</li>
+<li><strong>t-type</strong>: baseline performance with burst capability (recommended for lower throughput)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>DAX needs IAM permissions to access DynamoDB table (created automatically)</li>
+<li><strong>DAX is expensive</strong> (should not be used in low cost applications)</li>
+</ul>
+<h1 id="dynamodb-streams">DynamoDB Streams</h1>
+<ul>
+<li>
+<p>Ordered stream of item-level modifications (create / update / delete)</p>
+</li>
+<li>
+<p><strong>Data retention: 1 day</strong></p>
+</li>
+<li>
+<p>Stream records can be:</p>
+<ul>
+<li>
+<p>Read directly by AWS Lambda (using Event Source Mapping)</p>
+<p><img src="/_resources/aa028cfe245e413ba3ec416a626e97a3.png" />{width=40%}</p>
+</li>
+<li>
+<p>Read by KCL as a stream (requires <strong>Kinesis Adapter</strong>)</p>
+<p>The <strong>Kinesis Adapter</strong> is the <strong>recommended way to consume streams from DynamoDB</strong> for real-time processing. The KCL simplifies coding by providing useful abstractions above the low-level Kinesis Streams API.</p>
+<p><img src="/_resources/e3e8ce3acc3548d991f0a4a80885c1b3.png" />{width=60%}</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Stream record contents:</p>
+<ul>
+<li><code>KEYS_ONLY</code> - key attributes of the modified item</li>
+<li><code>NEW_IMAGE</code> - modified item</li>
+<li><code>OLD_IMAGE</code> - old item</li>
+<li><code>NEW_AND_OLD_IMAGES</code> - both new and old items</li>
+</ul>
+</li>
+<li>
+<p><strong>No need to provision shards</strong> (managed by AWS)</p>
+</li>
+<li>
+<p><strong>Not retroactive</strong> (stream will not contain records of changes prior to enabling streams)</p>
+</li>
+<li>
+<p>Use cases</p>
+<ul>
+<li>React to changes in real-time (Eg. welcome emails to new users)</li>
+<li>Send data to OpenSearch for indexing (search capability on top of DynamoDB)</li>
+<li><strong>Implement cross-region replication</strong> or <strong>Global Tables</strong> (requires DynamoDB stream to be enabled)</li>
+</ul>
+</li>
+</ul>
+<h1 id="time-to-live-ttl">Time To Live (TTL)</h1>
+<ul>
+<li>
+<p>Option to delete items after their expiry timestamp</p>
+</li>
+<li>
+<p>The TTL attribute must be <code>Number</code> type with Unix Epoch timestamp value</p>
+</li>
+<li>
+<p>Expired items are deleted within 48 hours (might appear in queries after expiry)</p>
+</li>
+<li>
+<p><strong>Deletion through TTL does not consume WCU</strong> (no extra cost)</p>
+</li>
+<li>
+<p><strong>Expired items are deleted from secondary indexes</strong></p>
+</li>
+<li>
+<p>DynamoDB stream can be used to recover deleted items</p>
+</li>
+<li>
+<p>Working</p>
+<p>A process within DynamoDB performs a scan on the table regularly to check the TTL timestamps and mark the items as expired. Another process performs a scan to find the expired items and deletes them.</p>
+<p><img src="/_resources/3f3aae8c016e42ceb037a4c78968415a.png" />{width=50%}</p>
+</li>
+</ul>
+<h1 id="cli-options">CLI Options</h1>
+<ul>
+<li><code>--projection-expression</code> - specify the attributes to be retrieved</li>
+<li><code>--filter-expression</code> - filter items client-side before displaying on the CLI</li>
+<li><code>--page-size</code> - make <strong>multiple API calls</strong>, each retrieving few items, to get the full list of items to prevent timeout error (default 1000 items)</li>
+<li><code>--max-items</code> - retrieve only a few items in a <strong>single API call</strong>, returns <code>NextToken</code> if more items exist</li>
+<li><code>--starting-token</code> - specify the last <code>NextToken</code> to retrieve the next set of items</li>
+</ul>
+<h1 id="transactions">Transactions</h1>
+<ul>
+<li>
+<p><strong>All-or-nothing operation</strong> (the change happens to all the items across multiple tables or none of the items). If any operation in the transaction fails, the entire transaction is failed.</p>
+</li>
+<li>
+<p>Provides Atomicity, Consistency, Isolation &amp; Durability (ACID)</p>
+</li>
+<li>
+<p><strong>Available in both Read and Write operations</strong></p>
+</li>
+<li>
+<p>Performs 2 operations for every item</p>
+<ul>
+<li><code>TransactGetItems</code> - get the required items</li>
+<li><code>TransactWriteItems</code> - update the required items</li>
+</ul>
+</li>
+<li>
+<p><strong>Consumes twice the WCU and RCU of strongly consistent reads</strong></p>
+<ul>
+<li>3 transactional writes per sec with item size 5 KB ⇒ 3 x [ 5 KB / 1 KB ] x 2 = 30 WCU</li>
+<li>5 transactional reads per sec with item size 5 KB ⇒ 5 x [ 8 KB (rounded up) / 4 KB ] x 2 = 20 RCU</li>
+</ul>
+</li>
+<li>
+<p>Use cases: financial transactions, multi-player games, managing orders, etc.</p>
+</li>
+<li>
+<p>Example</p>
+<p>Update both the tables in a single transaction.</p>
+<p><img src="/_resources/a278ec4070c3458da620e18f423c53e1.png" /></p>
+</li>
+</ul>
+<h1 id="security">Security</h1>
+<ul>
+<li>Access Control using IAM</li>
+<li>At-rest encryption using KMS</li>
+<li>In-flight encryption using TLS</li>
+<li>Gateway Endpoints to access DynamoDB from the VPC without traversing the internet</li>
+<li><strong>Fine-grained (low level) access control</strong> can be controlled using <strong>federated login</strong> and:
+<ul>
+<li><code>LeadingKeys</code> - limit access to rows</li>
+<li><code>Attributes</code> - limit access to columns</li>
+</ul>
+</li>
+</ul>
+<h1 id="atomic-counters">Atomic Counters</h1>
+<ul>
+<li>Use <code>UpdateItem</code> operation to implement an <em><strong>atomic counter,</strong></em> a numeric attribute that is incremented, unconditionally.</li>
+<li>Updates are not idempotent (the counter will increment each time you call <code>UpdateItem</code>)</li>
+<li>Not suitable where counting must be accurate (use conditional update instead)</li>
+</ul>
+<h1 id="misc">Misc</h1>
+<ul>
+<li><strong>AWS Database Migration Service (DMS)</strong> can be used to migrate data to DynamoDB</li>
+<li><strong>Partitioning data too finely is bad</strong> (can increase the overhead of retrieving and processing the partition metadata)</li>
+<li>Reduce page size to reduce consumed RCU</li>
+<li>To perform scan operations for analytics purposes, the best way is to create a shadow table (copy of the original table) and perform scans on it. This way scan operations don’t impact the RCU of the main table.</li>
+<li>To return the number of write capacity units consumed by any write operation, set the <code>ReturnConsumedCapacity</code> parameter to one of the following:
+<ul>
+<li><code>TOTAL</code> - total number of WCU consumed</li>
+<li><code>INDEXES</code> - total number of WCU consumed, with subtotals for the table and any secondary indexes that were affected by the operation</li>
+<li><code>NONE</code> - returns nothing (default)</li>
+</ul>
+</li>
+<li>To perform an upsert operation, we only need permission for <code>GetItem</code> and <code>UpdateItem</code> (also has the permission to put an item if it doesn’t exist).</li>
+<li>Write types in DynamoDB<br />
+<img src="/_resources/6ae42aa8b69849cd8cf04858213735a5.png" /></li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

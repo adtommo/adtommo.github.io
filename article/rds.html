@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>RDS - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">RDS</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692789605899"
+                  >2023-08-23 12:20</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692804855168"
+                  >2023-08-23 16:34</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Storage &amp; Querying</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Regional Service</li>
+<li>Supports Multi AZ</li>
+<li>AWS Managed SQL Database</li>
+<li>Supported Engines
+<ul>
+<li>Postgres</li>
+<li>MySQL</li>
+<li>MariaDB</li>
+<li>Oracle</li>
+<li>Microsoft SQL Server</li>
+<li>Aurora (AWS Proprietary database)</li>
+</ul>
+</li>
+<li><strong>Backed by EC2 instances with EBS storage</strong></li>
+<li>We don't have access to the underlying instance (cannot SSH into it)</li>
+<li><strong>DB connection is made on port 3306</strong></li>
+<li>SG is used for network security (must allow incoming TCP traffic on port 3306 from specific IPs)</li>
+</ul>
+<h1 id="backups">Backups</h1>
+<ul>
+<li><strong>Automated Backups</strong> (enabled by default)
+<ul>
+<li>Daily full backup of the database (during the defined maintenance window)</li>
+<li>Backup retention: 7 days (max 35 days)</li>
+<li><strong>Transaction logs</strong> are backed-up every <strong>5 minutes</strong> for <strong>Point In Time Recovery (PITR)</strong></li>
+<li><strong>Automated backups happen in the same region</strong> (can happen in multiple AZs in a multi-AZ deployment)</li>
+</ul>
+</li>
+<li><strong>DB Snapshots</strong>:
+<ul>
+<li>Manually triggered</li>
+<li>Backup retention: unlimited</li>
+<li><strong>Snapshots can be saved across regions</strong></li>
+</ul>
+</li>
+</ul>
+<h1 id="auto-scaling">Auto Scaling</h1>
+<ul>
+<li>Automatically scales the RDS storage within the max limit</li>
+<li>Condition for automatic storage scaling:
+<ul>
+<li>Free storage is less than 10% of allocated storage</li>
+<li>Low-storage lasts at least 5 minutes</li>
+<li>6 hours have passed since last modification</li>
+</ul>
+</li>
+</ul>
+<h1 id="read-replicas">Read Replicas</h1>
+<ul>
+<li>Allows us to scale the read operation (SELECT) on RDS</li>
+<li><strong>Up to 5 read replicas</strong> (within AZ, cross AZ or cross region)</li>
+<li><strong>Asynchronous Replication</strong> (seconds)</li>
+<li><strong>Replicas can be promoted to their own DB</strong></li>
+<li><strong>Applications must update the connection string to leverage read replicas</strong></li>
+</ul>
+<p><img src="/_resources/1dafd5d1ff1341eda82a4bde615d6649.png" />{width=50%}</p>
+<ul>
+<li>Network fee for replication
+<ul>
+<li>Same region: free</li>
+<li>Cross region: paid</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>You can create a read replica as a Multi-AZ DB instance. A standby of the replica will be created in another AZ for failover support for the replica.</p>
+</blockquote>
+<h1 id="multi-az">Multi AZ</h1>
+<ul>
+<li>Increase availability of the RDS database by replicating it to another AZ</li>
+<li><strong>Synchronous Replication</strong></li>
+<li><strong>Connection string does not require to be updated</strong> (both the databases can be accessed by one DNS name, which allows for automatic DNS failover to standby database)</li>
+<li>When failing over, <strong>RDS flips the CNAME</strong> record for the DB instance to point at the standby, which is in turn promoted to become the new primary.</li>
+</ul>
+<p><img src="/_resources/e71b767080dd4ec78d340e97b0684d64.png" />{width=50%}</p>
+<ul>
+<li><strong>Cannot be used for scaling as the standby database cannot take read/write operation while the master database is still active.</strong></li>
+</ul>
+<h1 id="rds-proxy">RDS Proxy</h1>
+<ul>
+<li><strong>Serverless</strong>, auto-scaling, <strong>multi-AZ</strong> proxy for RDS</li>
+<li>The applications connect to the RDS proxy instead of connecting directly to the RDS. The <strong>RDS proxy pools and shares DB connections among the applications</strong>.</li>
+<li>Reduces CPU and RAM requirements of the DB when a large number of applications need to connect to the DB</li>
+<li><strong>Minimizes open connections and timeouts</strong></li>
+<li><strong>DB failover is handled by RDS proxy</strong> (reduces failover time by up to 66%)</li>
+<li>Supports <strong>RDS (MySQL, PostgreSQL, MariaDB)</strong> and <strong>Aurora (MySQL, PostgreSQL)</strong></li>
+</ul>
+<p><img src="/_resources/b7db9fef1dcf43fabefa22485935f605.png" />{width=50%}</p>
+<ul>
+<li><strong>No code changes required</strong> (just update the connection URL)</li>
+<li><strong>Allows to enforce IAM DB Auth</strong> (credentials can be stored in Secrets Manager)</li>
+<li><strong>RDS Proxy can only be accessed from within the VPC</strong></li>
+</ul>
+<h1 id="encryption">Encryption</h1>
+<ul>
+<li><strong>At rest encryption</strong>
+<ul>
+<li>KMS AES-256 encryption</li>
+<li>Encrypted DB ⇒ Encrypted Snapshots, Encrypted Replicas and vice versa</li>
+</ul>
+</li>
+<li><strong>In flight encryption</strong>
+<ul>
+<li><strong>SSL certificates</strong></li>
+<li>Force all connections to your DB instance to use SSL by setting the <code>rds.force_ssl</code> parameter to <code>true</code></li>
+<li>To enable encryption in transit, download the <strong>AWS-provided root certificates</strong> and use them when connecting to DB</li>
+</ul>
+</li>
+<li>To encrypt an un-encrypted RDS database:
+<ul>
+<li>Create a snapshot of the un-encrypted database</li>
+<li>Copy the snapshot and enable encryption for the snapshot</li>
+<li>Restore the database from the encrypted snapshot</li>
+<li>Migrate applications to the new database, and delete the old database</li>
+</ul>
+</li>
+<li>To create an encrypted cross-region read replica from a non-encrypted master:
+<ul>
+<li>Encrypt a snapshot from the unencrypted master DB instance</li>
+<li>Create a new encrypted master DB instance</li>
+<li>Create an encrypted cross-region Read Replica from the new encrypted master</li>
+</ul>
+</li>
+</ul>
+<h1 id="access-management">Access Management</h1>
+<ul>
+<li>
+<p>Username and Password can be used to login into the database</p>
+</li>
+<li>
+<p>EC2 instances &amp; Lambda functions should access the DB using <strong>IAM DB Authentication</strong> (<strong>AWSAuthenticationPlugin</strong> with <strong>IAM</strong>) - <strong>token based access</strong></p>
+<ul>
+<li>EC2 instance or Lambda function has an IAM role which allows is to make an API call to the RDS service to get the <strong>auth token</strong> which it uses to access the MySQL database.</li>
+<li>Only works with <strong>MySQL</strong> and <strong>PostgreSQL</strong></li>
+<li>Auth token is valid for <strong>15 mins</strong></li>
+<li>Network traffic is encrypted in-flight using SSL</li>
+<li><strong>Central access management using IAM</strong> (instead of doing it for each DB individually)</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/7565f82aaf384ba9bdb550dcc371ceae.png" />{width=50%}</p>
+<ul>
+<li>EC2 &amp; Lambda can also get DB credentials from Parameter Store to authenticate to the DB - <strong>credentials based access</strong></li>
+</ul>
+<h1 id="rds-events">RDS Events</h1>
+<ul>
+<li>RDS events only provide operational events on the DB instance (not the data)</li>
+<li>To capture data modification events, use <strong>native functions</strong> or <strong>stored procedures</strong> to invoke a <strong>Lambda</strong> function.</li>
+</ul>
+<h1 id="monitoring">Monitoring</h1>
+<ul>
+<li><strong>CloudWatch Metrics for RDS</strong>
+<ul>
+<li>Gathers metrics from the <strong>hypervisor</strong> of the DB instance
+<ul>
+<li>CPU Utilization</li>
+<li>Database Connections</li>
+<li>Freeable Memory</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Enhanced Monitoring</strong>
+<ul>
+<li>Gathers metrics from an agent running on the RDS instance
+<ul>
+<li>OS processes</li>
+<li>RDS child processes</li>
+</ul>
+</li>
+<li>Used to monitor different <strong>processes or threads on a DB instance</strong> (ex. percentage of the CPU bandwidth and total memory consumed by each database process in your RDS instance</li>
+</ul>
+</li>
+</ul>
+<h1 id="logging">Logging</h1>
+<ul>
+<li><strong>Error Logs</strong> - enabled by default</li>
+<li><strong>Slow Query Logs</strong> - logs queries that took longer to execute (can be enabled)</li>
+<li><strong>General Logs</strong> - can be enabled</li>
+<li><strong>Audit Logs</strong> - can be enabled</li>
+</ul>
+<h1 id="maintenance-upgrade">Maintenance &amp; Upgrade</h1>
+<p>Any database engine level upgrade for an RDS DB instance, with Multi-AZ deployment, triggers both the primary and standby DB instances to be upgraded at the same time. This causes <strong>downtime</strong> until the upgrade is complete. This is why it should be done during the maintenance window.</p>
+<h1 id="misc">Misc</h1>
+<ul>
+<li>RDS supports using <strong>Transparent Data Encryption (TDE)</strong> to encrypt stored data on your DB instances running Microsoft SQL Server. TDE automatically encrypts data before it is written to storage, and automatically decrypts data when the data is read from storage.</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

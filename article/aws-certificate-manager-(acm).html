@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>AWS Certificate Manager (ACM) - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">AWS Certificate Manager (ACM)</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692787938401"
+                  >2023-08-23 11:52</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692787960492"
+                  >2023-08-23 11:52</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Auth &amp; Security</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><ul>
+<li>Provision, manage and deploy TLS Certificates easily</li>
+<li><strong>Supports both public and private TLS certificates</strong></li>
+<li>Free for public TLS certificates</li>
+<li>TLS certificates can be loaded on:
+<ul>
+<li>ELB</li>
+<li>API Gateway</li>
+<li>CloudFront Distributions</li>
+</ul>
+</li>
+<li>If we already have a certificate, we can load them to ACM. Otherwise, we can request a certificate from ACM directly.</li>
+<li><strong>ACM issued certificates are valid for 13 months.</strong> They are also renewed automatically.</li>
+<li><strong>Imported certificates are not automatically renewed</strong> and would need to be imported after getting renewed from the 3rd party.</li>
+<li>An ACM certificate that was validated using DNS validation will automatically renew if the certificate is still being using by an AWS service 60 days prior to its expiration and has an ACM-provided CNAME that is accessible via public DNS. If the certificate is not being used or if the CNAME is not correct, ACM will not automatically validate the DNS and will send notifications starting at 45 days prior to the expiration date.</li>
+<li>For regions where ACM is not supported, <strong>IAM Certificate Store</strong> can be used to import SSL certificates issued by a 3rd party.</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

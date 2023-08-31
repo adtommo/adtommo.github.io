@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Organizations - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Organizations</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692788212858"
+                  >2023-08-23 11:56</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692800486823"
+                  >2023-08-23 15:21</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Auth &amp; Security</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h2 id="intro">Intro</h2>
+<ul>
+<li><strong>Global service</strong></li>
+<li>Manage multiple AWS accounts under an organization
+<ul>
+<li>one master account</li>
+<li>multiple member accounts</li>
+</ul>
+</li>
+<li><strong>An AWS account can only be part of one organization</strong></li>
+<li><strong>Consolidated Billing</strong> across all accounts (lower cost)</li>
+<li>Pricing benefits from aggregated usage of AWS resources</li>
+<li>API to automate AWS account creation (on demand account creation)</li>
+<li>Establish Cross Account Roles for Admin purposes where the master account can assume an admin role in any of the children accounts</li>
+</ul>
+<h2 id="organizational-units-ou">Organizational Units (OU)</h2>
+<ul>
+<li>Folders for grouping AWS accounts of an organization (can be nested)</li>
+</ul>
+<p><img src="/_resources/634dd18d7f8946fdb93bcc73955d14af.png" />{width=70%}</p>
+<h2 id="service-control-policies-scp">Service Control Policies (SCP)</h2>
+<ul>
+<li><strong>Whitelist or blacklist IAM actions at the OU or Account level</strong></li>
+<li><strong>Does not apply to the Master Account</strong></li>
+<li>Applies to all the Users and Roles of the member accounts, including the root user. So, if something is restricted for that account, even the root user of that account won’t be able to do it.</li>
+<li>SCP can be configured as either:
+<ul>
+<li><strong>Allow List</strong>: actions are denied by default, specify allowed actions</li>
+<li><strong>Deny List</strong>: actions are allowed by default, specify denied actions</li>
+</ul>
+</li>
+<li><strong>Does not apply to service-linked roles</strong></li>
+<li><strong>Explicit Deny</strong> has the highest precedence</li>
+</ul>
+<h2 id="migrating-accounts-between-organizations">Migrating Accounts between Organizations</h2>
+<ul>
+<li>To migrate member accounts from one organization to another
+<ol>
+<li>Remove the member account from the old organization</li>
+<li>Send an invite to the member account from the new organization</li>
+<li>Accept the invite from the member account</li>
+</ol>
+</li>
+<li>To migrate the master account
+<ol>
+<li>Remove the member accounts from the organizations using procedure above</li>
+<li>Delete the old organization</li>
+<li>Repeat the process above to invite the old master account to the new org</li>
+</ol>
+</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

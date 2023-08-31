@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>CodeCommit - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">CodeCommit</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692798856797"
+                  >2023-08-23 14:54</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692798880326"
+                  >2023-08-23 14:54</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">CICD</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><ul>
+<li>AWS managed <strong>private</strong> remote Git repository</li>
+<li>No repo size limit</li>
+<li>Code, application and infrastructure within AWS Cloud ⇒ <strong>increased security</strong></li>
+<li>Enable repository level notifications on an <strong>SNS topic</strong></li>
+<li>GitHub is far better</li>
+</ul>
+<h1 id="security">Security</h1>
+<ul>
+<li>Authentication using SSH keys (key file) or HTTPS (enter username and password manually)</li>
+<li>Authorization using IAM</li>
+<li><strong>Repos are encrypted by default</strong> (at rest using KMS keys and in flight using HTTPS or SSH)</li>
+<li>For cross-account access, create an IAM Role and use STS AssumeRole API to get access to CodeCommit Repo</li>
+</ul>
+<h1 id="misc">Misc</h1>
+<ul>
+<li>IAM supports CodeCommit with three types of credentials:
+<ul>
+<li><strong>Git credentials</strong>: an IAM-generated username and password pair you can use to communicate with CodeCommit repositories over <strong>HTTPS</strong></li>
+<li><strong>SSH keys</strong>: a locally generated public-private key pair that you can associate with your IAM user to communicate with CodeCommit repositories over <strong>SSH</strong></li>
+<li><strong>AWS access keys</strong>: which you can use with the <strong>Git Credential Helper</strong> included with the AWS CLI to communicate with CodeCommit repositories over <strong>HTTPS</strong></li>
+</ul>
+</li>
+<li><strong>cURL cannot be used to work with the CodeCommit API</strong> (must use AWS SDK)</li>
+<li>Recommended to generate Git credentials in the IAM console to access repos in CodeCommit</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

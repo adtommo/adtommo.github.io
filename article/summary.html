@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Summary - adtommo-notes</title>
+  <link rel="stylesheet" href="/_markdown_plugin_assets/highlight.js/atom-one-light.css" /></head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Summary</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692805232199"
+                  >2023-08-23 16:40</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692887648617"
+                  >2023-08-24 15:34</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Quick Notes</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h3 id="route-53">Route 53</h3>
+<ul>
+<li>EC2 cannot be a pointed to by an Alias record</li>
+<li>Primary record must have health check for failover routing policy</li>
+<li><strong>Failure Threshold</strong> is the parameter used by Route 53 health checks to determine if an endpoint is healthy. A failure occurs if an endpoint does not respond to a request.</li>
+<li>Route 53 can be used as a DNS to register a domain name, route the internet traffic, and perform health checks on resources. If being used for all three tasks, the order of setup must be sequential as above.</li>
+</ul>
+<h3 id="elb">ELB</h3>
+<ul>
+<li>ELB has access logs</li>
+<li>ALB, NLB and CloudFront support SNI</li>
+<li>Session affinity is only supported by CLB and ALB (layer 7)</li>
+</ul>
+<h3 id="api-gateway">API Gateway</h3>
+<ul>
+<li>For <code>HTTP_PROXY</code> integration type, option to add HTTP headers in the request (eg. API key)</li>
+<li>Mapping template uses <strong>Velocity Template Language (VTL)</strong></li>
+<li>Private endpoints can only be accessed within your VPC using an <strong>Interface VPC endpoint</strong> (ENI)</li>
+<li><strong>TTL: 0 s - 1 h (default 300 sec)</strong></li>
+<li>Two types of logs:
+<ul>
+<li><strong>Execution Logs</strong>: log requests, responses, etc.</li>
+<li><strong>Access Logs</strong>: who accessed the API and how</li>
+</ul>
+</li>
+<li>When the integration type is proxy-based, the responses are proxied to the client without modification by API gateway. So, CORS needs to be handled by the backend itself.</li>
+<li><code>MaxAgeSeconds</code> specifies the TTL used by browser to cache pre-flight response</li>
+<li><strong>Associate</strong> API stages and <strong>API keys with the usage plan</strong> using <code>CreateUsagePlanKey</code> API</li>
+</ul>
+<h3 id="ecs">ECS</h3>
+<ul>
+<li>It doesn't automatically handle resource provisioning, balancing load, auto-scaling, monitoring, and placing your containers across your cluster. Use <strong>Elastic Beanstalk</strong> for that.</li>
+<li><strong>ECS Cluster Capacity Provider</strong> - automatically scales out EC2 instances when the service is missing capacity.</li>
+<li>Use <strong>advanced container definition parameters</strong> to define environment variables for a task.</li>
+<li><strong>Cluster Query Language</strong> can be used to write expressions to group container instances</li>
+</ul>
+<h3 id="asg">ASG</h3>
+<ul>
+<li>Predictive scaling using ML</li>
+</ul>
+<h3 id="cloudformation">CloudFormation</h3>
+<ul>
+<li>
+<p>Parameters can be modified without having to re-upload the template</p>
+</li>
+<li>
+<p>Supported parameter types:</p>
+<div><pre class="hljs"><code>String – A literal string
+
+Number – An integer<span class="hljs-built_in"> or </span>float
+List&lt;Number&gt; – An<span class="hljs-built_in"> array </span>of integers<span class="hljs-built_in"> or </span>floats
+
+CommaDelimitedList – An<span class="hljs-built_in"> array </span>of literal strings that are separated by commas
+
+AWS::EC2::KeyPair::KeyName – An Amazon EC2 key pair name
+
+AWS::EC2::SecurityGroup::Id – A security group ID
+AWS::EC2::Subnet::Id – A subnet ID
+AWS::EC2::VPC::Id – A VPC ID
+
+List&lt;AWS::EC2::VPC::Id&gt; – An<span class="hljs-built_in"> array </span>of VPC IDs
+List&lt;AWS::EC2::SecurityGroup::Id&gt; – An<span class="hljs-built_in"> array </span>of security group IDs
+List&lt;AWS::EC2::Subnet::Id&gt; – An<span class="hljs-built_in"> array </span>of subnet IDs</code></pre></div>
+</li>
+<li>
+<p>Exported output name must be unique within the region.</p>
+</li>
+<li>
+<p><strong>Conditions cannot be used within the Parameters section</strong></p>
+</li>
+<li>
+<p>Conditions can reference other conditions for nesting</p>
+</li>
+<li>
+<p>Enable SNS integration when creating a stack to <strong>send stack events to an SNS topic</strong></p>
+</li>
+<li>
+<p><strong>Stack Policy defines the update actions that are allowed or denied on specific resources during stack update</strong></p>
+</li>
+<li>
+<p>By default, all update actions are allowed to all the resources during a stack update. When you create a <strong>stack policy</strong>, all update operations on all the stack resources are denied. You need to explicitly allow update operations on the resources.</p>
+</li>
+<li>
+<p>If the stack is stuck in a <code>DELETE_FAILED</code> state because some resource failed to be deleted, modify the template to retain the resource and manually delete it after the deployment.</p>
+</li>
+</ul>
+<h3 id="elastic-beanstalk">Elastic Beanstalk</h3>
+<ul>
+<li>Lifecycle policy to phase out old versions based on:
+<ul>
+<li><strong>Days</strong> (delete versions older than x days)</li>
+<li><strong>Count</strong> (keep latest x versions)</li>
+</ul>
+</li>
+<li>Option to retain the old version’s source bundle in S3</li>
+<li>Config files should be present in <code>.ebextensions/</code> directory in the root of the source code</li>
+<li>Config files should have <code>.config</code> extension and should be in YAML or JSON format</li>
+<li>Through EB Extensions, we have the ability to add resources (RDS, ElastiCache, etc.) through CloudFormation, which cannot be done from the EB console.</li>
+<li><strong>If some change cannot be done in an environment</strong> (eg. changing the load balancer type), <strong>we need to migrate our environment.</strong></li>
+<li>Running containerized applications
+<ul>
+<li>Single container (without ECS)
+<ul>
+<li><code>Dockerfile</code> - EB will build and run the Docker container (doesn’t require a pre-built docker image in a container repository)</li>
+<li><code>Dockerrun.aws.json</code> (v1) - describes where the prebuilt Docker image is along with how to run it (ports, volumes, etc.)</li>
+</ul>
+</li>
+<li>Multi container (uses ECS)
+<ul>
+<li><code>Dockerrun.aws.json</code> (v2) - The Docker images must be pre-built and stored in a container repository.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>TLS certificate can be configured in the <code>.ebextensions/securelistener-alb.config</code> file</li>
+<li>Health Checks should not be redirected from HTTP to HTTPS</li>
+<li>If your app’s language is incompatible with Beanstalk and does not use Docker, create a custom platform using <code>Platform.yaml</code> file.</li>
+<li>Blue-Green deployment is not directly available in Beanstalk</li>
+<li>To deploy a new application version through the console, you'll need to upload a source bundle that meets the following requirements:
+<ul>
+<li>Consist of a <strong>single</strong> ZIP file or WAR file</li>
+<li>Not exceed 512 MB</li>
+<li>Not include a parent folder or top-level directory (subdirectories are fine)</li>
+</ul>
+</li>
+<li>To deploy a worker application that processes periodic background tasks, the application bundle must include a <code>cron.yaml</code> file.</li>
+<li>EB can configure EC2, CloudWatch and ALB. <strong>It cannot configure Lambda or CloudFront.</strong></li>
+<li>Environment variables can be defined in <code>env.yaml</code> present in the root of the source bundle.</li>
+<li>To deploy a new version of the application, package your application as a <code>zip</code> or <code>war</code> file and deploy it using <code>eb deploy</code> command.</li>
+<li>To migrate an EB environment between accounts, create a saved configuration in the first account and download it to your local machine. Make the account-specific parameter changes and upload to the S3 bucket in second account. From Elastic Beanstalk console, create an application from <strong>Saved Configurations</strong>.</li>
+</ul>
+<h3 id="sam">SAM</h3>
+<ul>
+<li>Deploy locally for development using <strong>SAM CLI</strong> and <strong>AWS Toolkits</strong></li>
+<li>SAM uses CodeDeploy under the hood to update Lambda functions every time we update the code and deploy (traffic shifting using aliases).</li>
+</ul>
+<h3 id="cdk">CDK</h3>
+<ul>
+<li>Supports JavaScript/TypeScript, Python, Java and .NET</li>
+<li>The code is compiled to a CloudFormation template using <strong>CDK CLI</strong></li>
+<li><strong>AWS Construct Library</strong> - a collection of Constructs included in AWS CDK which contains Constructs for every AWS resource</li>
+<li><strong>Construct Hub</strong> - repository of constructs created by AWS, 3rd parties, and open-source CDK community</li>
+<li>Before using CDK to deploy an app in any AWS environment, we need to deploy a CloudFormation stack called <strong>CDK Toolkit</strong> in that environment (combination of account &amp; region), using the command <strong><strong><code>cdk bootstrap aws://&lt;aws_account&gt;/&lt;aws_region&gt;</code></strong></strong>.</li>
+<li>Use <strong>CDK Assertions Module</strong> along with testing frameworks like Jest or PyTest for testing the resources created by CDK.
+<ul>
+<li><strong>Fine-grained Assertions</strong> (common) - test specific aspects of the CloudFormation template</li>
+<li><strong>Snapshot Tests</strong> - test the synthesized CloudFormation template against a previously stored baseline template</li>
+</ul>
+</li>
+</ul>
+<h3 id="cup">CUP</h3>
+<ul>
+<li>To host the hosted UI on a custom domain, we must create an ACM certificate in <code>us-east-1</code></li>
+<li><strong>Adaptive authentication</strong> - sign-in attempts may be blocked or require MFA if they seem suspicious</li>
+<li>For integration with ALB, must use an HTTPS listener</li>
+</ul>
+<h3 id="cip">CIP</h3>
+<ul>
+<li>Use CUP or any OIDC compliant IDP for authentication</li>
+<li>IAM roles must have a <strong>trust policy</strong> of CIP</li>
+<li>IAM policies for each role can be customized for each user using <strong>policy variables</strong>.</li>
+</ul>
+<h3 id="cognito-misc">Cognito Misc</h3>
+<ul>
+<li>Cognito lets you save end user data in datasets containing key-value pairs. This data is associated with an Amazon Cognito identity, so that it can be accessed across logins and devices. To sync this data between the Amazon Cognito service and an end user’s devices, invoke the <code>synchronize</code> method. Each dataset can have a maximum size of 1 MB. You can associate up to 20 datasets with an identity.</li>
+<li>Cognito supports <strong>developer authenticated identities</strong> to obtain unique identifiers for application users.</li>
+<li>When a user signs in to an application using their username and password, Cognito generates a unique <strong>Cognito ID</strong> for that user. This ID is used to track the user's session and to provide secure access to AWS resources.</li>
+</ul>
+<h3 id="iam">IAM</h3>
+<ul>
+<li>Global Service (IAM entities like roles can be used in any region without recreation)</li>
+<li><strong>IAM Query API</strong> can be used to make direct calls to the IAM web service (using access key ID and secret access key for authentication)</li>
+<li>By default, IAM users do not have access to the AWS Billing and Cost Management console.</li>
+<li>The following policy types only limit permissions (cannot grant permissions)
+<ul>
+<li>Service Control Policy (SCP)</li>
+<li>Permission Boundary</li>
+</ul>
+</li>
+<li>SMS-based MFA is available only for IAM users, not for the root user.</li>
+<li>IAM Groups cannot be identified as principal in an IAM policy. They cannot assume a role.</li>
+<li>Customer managed policy is versioned whereas inline policy is not</li>
+<li>A <strong>service-linked role</strong> is a pre-defined IAM role that is linked directly to an AWS service, not a resource. It includes all the permissions that the service requires to call other AWS services on your behalf.</li>
+<li>If access keys are compromised, invalidate the access keys by deleting them.</li>
+<li>Best practices
+<ul>
+<li>Delete (don’t generate) access keys for the root user</li>
+<li>Use Temporary Security Credentials (IAM Roles) instead of long-term access keys</li>
+<li>The root account should only be accessible by one admin user with MFA</li>
+</ul>
+</li>
+<li>Permission boundaries can only be applied to users and roles (not groups)</li>
+<li>To pass a Role to an AWS service, to assume, requires <code>iam:PassRole</code> permission for the user. The user should also have <code>iam:GetRole</code> permission to view the role being passed.</li>
+<li>Roles can only be passed to those services that are allowed to assume that role (specified in the role’s <strong>Trust Policy</strong>)</li>
+<li>IAM roles and resource-based policies delegate access across accounts only within a single partition.</li>
+</ul>
+<h3 id="ad">AD</h3>
+<ul>
+<li>AWS managed AD supports <strong>directory-aware workloads on AWS</strong> whereas AD connector does not.</li>
+</ul>
+<h3 id="kms">KMS</h3>
+<ul>
+<li><strong>Does not support versioning of keys</strong> (cannot get back the old key)</li>
+<li>For customer managed keys, deletion has a waiting period (<strong>pending deletion state</strong>) between <strong>7 - 30 days</strong> (default 30 days). The key can be recovered during the pending deletion state.</li>
+<li>Asymmetric keys
+<ul>
+<li>Can be generated in KMS</li>
+<li>No need to call the KMS API to encrypt data (data can be encrypted by the client)</li>
+<li>Not eligible for automatic rotation (use manual rotation)</li>
+</ul>
+</li>
+<li>Cannot access KMS keys without a key policy attached to them</li>
+<li>Default key policy - full access to the key for any user or role in the account</li>
+<li>Custom key policy can only be applied to customer-owned keys</li>
+<li><strong>Encryption SDK</strong> implements envelope encryption with <strong>data key caching</strong> (leverages <code>LocalCryptoMaterialsCache</code> feature)</li>
+<li>Some supported key operations:
+<ul>
+<li><strong>Temporarily disable keys</strong> so they cannot be used by anyone</li>
+<li><strong>Re-enable disabled keys</strong></li>
+<li><strong>Schedule deletion of keys</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="parameter-store">Parameter Store</h3>
+<ul>
+<li>Parameters are versioned</li>
+</ul>
+<h3 id="secrets-manager">Secrets Manager</h3>
+<ul>
+<li><strong>Mandatory encryption</strong> using KMS</li>
+<li><strong>Ability to force rotation of secrets every n days</strong> (not available in Parameter Store)</li>
+<li><strong>Automated secret rotation using Lambda</strong> (needs IAM permission)</li>
+<li><strong>Secrets are retained after deletion for 7 - 30</strong> (default) days (waiting period)</li>
+<li>Mostly used for DB authentication</li>
+</ul>
+<h3 id="nitro-enclaves">Nitro Enclaves</h3>
+<ul>
+<li><strong>Fully isolated VMs</strong> for <strong>processing highly sensitive data</strong> such as PII, healthcare data, etc.</li>
+<li><strong>No interactive access</strong> (eg. SSH) or external networking (reduces attack surface)</li>
+<li><strong>Cryptographic Attestation</strong>: only authorized code can be run in the Enclave</li>
+</ul>
+<h3 id="acm">ACM</h3>
+<ul>
+<li>TLS certificates can be loaded on ELB, API Gateway and CloudFront distributions.</li>
+<li><strong>ACM issued certificates are valid for 13 months.</strong> They are also renewed automatically.</li>
+<li><strong>Imported certificates are not automatically renewed</strong> and would need to be imported after getting renewed from the 3rd party.</li>
+<li>For regions where ACM is not supported, <strong>IAM Certificate Store</strong> can be used to import SSL certificates issued by a 3rd party.</li>
+<li>An ACM certificate that was validated using DNS validation will automatically renew if the certificate is still being using by an AWS service 60 days prior to its expiration and has an ACM-provided CNAME that is accessible via public DNS. If the certificate is not being used or if the CNAME is not correct, ACM will not automatically validate the DNS and will send notifications starting at 45 days prior to the expiration date.</li>
+</ul>
+<h3 id="private-ca">Private CA</h3>
+<ul>
+<li>Used to create Private CA (root or subordinate)</li>
+<li>Integrates with ELB, API Gateway, CloudFront and <strong>EKS</strong> to load private certificates</li>
+</ul>
+<h3 id="organization">Organization</h3>
+<ul>
+<li>SCP - Whitelist or blacklist IAM actions at the OU or Account level</li>
+<li>SCP does not apply to the master account or service-linked roles</li>
+</ul>
+<h3 id="sqs">SQS</h3>
+<ul>
+<li>Max message size: 256 KB</li>
+<li>Default message retention: 4 days (max: 14 days)</li>
+<li>Batching is configured using <code>MaxNumberOfMessages</code> parameter in the <code>ReceiveMessage</code> API</li>
+<li>Queue type cannot be changed once created</li>
+<li>For FIFO queues, max number of consumers = number of unique group IDs</li>
+<li>Default message visibility timeout = 30 s</li>
+<li>Max long polling duration = 20 s (uses <code>WaitTimeSeconds</code> parameter)</li>
+<li>DLQ must be of the same type as the original queue</li>
+</ul>
+<h3 id="sns">SNS</h3>
+<ul>
+<li>In-flight encryption by default using HTTPS API</li>
+<li>At-rest encryption using KMS keys (optional)</li>
+<li>KDF can be subscribed to a standard SNS topic to send data into S3 or Redshift</li>
+</ul>
+<h3 id="eventbridge">EventBridge</h3>
+<ul>
+<li>EventBridge delivers a near real-time stream of system events that describe changes in AWS resources.</li>
+<li>Event buses support cross-account access using Event Bus Policy</li>
+<li>Can archive events (all or based on a filter) sent to an event bus to replay later</li>
+<li>Event schema can be versioned</li>
+<li>The target for an event rule in an account can be an event bus in another account.</li>
+</ul>
+<h3 id="kds">KDS</h3>
+<ul>
+<li>Data Retention: 1 day (default) to 365 days</li>
+<li>Once data is inserted in KDS, it can’t be modified or deleted (immutability)</li>
+<li>Ability to re-process (<strong>replay</strong>) data</li>
+<li>Capacity modes
+<ul>
+<li><strong>Provisioned</strong>
+<ul>
+<li>Publishing: 1MB/sec per shard or 1000 records/sec per shard</li>
+<li>Consuming:
+<ul>
+<li><strong>Shared</strong>: 2MB/sec per shard</li>
+<li><strong>Enhanced Fanout</strong>: 2MB/sec per shard per consumer</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>On-demand</strong> - auto scaling with default capacity provisioned - <strong>4 MB/sec or 4000 records/sec</strong></li>
+</ul>
+</li>
+<li><strong>KDS is present outside the VPC.</strong> VPC endpoints can be used to access Kinesis from within the VPC.</li>
+<li><strong>Batching</strong> in <code>PutRecord</code> API <strong>reduces cost and increases throughput</strong> (automatically done by KPL)</li>
+<li><strong>Use KPL to achieve high write throughput in KDS</strong></li>
+<li>Embed a primary key within the record to handle duplicate records on the consumer side</li>
+<li>In shared consumer model, <strong>consumers poll data from KDS</strong> using <code>GetRecords</code> API call (<strong>pull-based</strong>)</li>
+<li>In enhanced fanout consumer model, <strong>consumers subscribe to a shard</strong> using <code>SubscribeToShard</code> API. KDS pushes data to consumers (<strong>push-based</strong>)</li>
+<li>Maximum number of KCL instances = number of shards</li>
+<li>KCL checkpoints the read progress into DynamoDB</li>
+</ul>
+<h3 id="kdf">KDF</h3>
+<ul>
+<li><strong>Writes data in batches efficiently (near real time)</strong></li>
+<li>AWS destinations: S3, Redshift (copy through S3), <strong>OpenSearch</strong></li>
+<li>Greater the buffer size, higher the write efficiency, longer it will take to fill the buffer</li>
+<li><strong>Custom data transformation using Lambda functions</strong> (not supported in KDS)</li>
+<li><strong>No replay capability</strong> (does not store data like KDS)</li>
+</ul>
+<h3 id="kda">KDA</h3>
+<ul>
+<li>Perform real-time analytics on streaming data</li>
+<li>SQL
+<ul>
+<li>ingests data from <strong>KDS</strong> or <strong>KDF</strong></li>
+<li><strong>serverless</strong> querying using SQL</li>
+</ul>
+</li>
+<li>Flink
+<ul>
+<li>ingests data from <strong>KDS</strong> or <strong>MSK</strong></li>
+<li>advanced querying using Flink</li>
+</ul>
+</li>
+</ul>
+<h3 id="appsync">AppSync</h3>
+<ul>
+<li>Building <strong>GraphQL</strong> APIs</li>
+<li><strong>Offline data synchronization</strong> in mobile devices</li>
+<li>Retrieve data in real-time with WebSocket or MQTT on WebSocket</li>
+<li>To get HTTPS on AppSync with a custom domain, use CloudFront in front of AppSync</li>
+</ul>
+<h3 id="msk">MSK</h3>
+<ul>
+<li>Used to stream data (alternative to KDS)</li>
+<li><strong>MSK Serverless</strong>: auto-scaling MSK cluster without provisioning or managing capacity</li>
+<li>No in-flight encryption</li>
+</ul>
+<h3 id="instance-store">Instance Store</h3>
+<ul>
+<li>Millions of IOPS</li>
+<li>Loses data even when the instance is hibernated</li>
+<li>Can be configured only during instance launch</li>
+</ul>
+<h3 id="ebs">EBS</h3>
+<ul>
+<li>Bound to an AZ</li>
+<li><code>DeleteOnTermination</code> attribute can be updated for the root EBS volume for a running instance only from the CLI. It can be done from the console only if the instance is stopped.</li>
+<li><strong>New EBS volumes are raw block storage and do not contain any partition or file system</strong>. You need to login to the instance and <strong>format the EBS volume with a file system</strong> for it to be usable.</li>
+<li>Boot volumes must be SSD type</li>
+<li>General purpose SSD
+<ul>
+<li>3 IOPS per GB</li>
+<li>max 16,000 IOPS (at 5,334 GB)</li>
+</ul>
+</li>
+<li>Provisioned IOPS SSD
+<ul>
+<li>50 IOPS per GB</li>
+<li>max 32,000 IOPS for normal EC2 instances and 64,000 IOPS for nitro EC2 instances</li>
+<li>supports EBS multi-attach (not supported by other types)</li>
+<li>io2 block express - 1000 IOPS per GB, max 256,000 IOPS</li>
+</ul>
+</li>
+<li>Throughput Optimized HDD (st1) - max 500 IOPS</li>
+<li>Cold HDD (sc1) - max 250 IOPS</li>
+<li><strong>Data Lifecycle Manager (DLM)</strong> can be used to automate the creation, retention, and deletion of snapshots of EBS volumes</li>
+<li><strong>Snapshots are incremental</strong> but only the most recent snapshot is required to restore the volume</li>
+</ul>
+<h3 id="efs">EFS</h3>
+<ul>
+<li>Serverless</li>
+<li>Can be mounted to multiple EC2 instances <strong>across AZs</strong></li>
+<li>Compatible with <strong>Linux</strong> based AMIs (<strong>POSIX</strong> file system)</li>
+<li>Lifecycle management feature to move files to <strong>EFS-IA</strong> after N days</li>
+</ul>
+<h3 id="rds">RDS</h3>
+<ul>
+<li><strong>Automated daily backup</strong>
+<ul>
+<li>Backup retention: 7 days (max 35 days)</li>
+<li><strong>Transaction logs</strong> are backed-up every <strong>5 minutes</strong> for <strong>Point In Time Recovery (PITR)</strong></li>
+<li><strong>Automated backups happen in the same region</strong> (can happen in multiple AZs in a multi-AZ deployment)</li>
+</ul>
+</li>
+<li>Manually triggered <strong>DB Snapshots</strong>
+<ul>
+<li>Backup retention: unlimited</li>
+<li><strong>Snapshots can be saved across regions</strong></li>
+</ul>
+</li>
+<li>Read replicas can be within AZ, cross AZ or cross region</li>
+<li>RDS proxy
+<ul>
+<li><strong>No code changes required</strong> (just update the connection URL)</li>
+<li><strong>Allows to enforce IAM DB Auth</strong> (credentials can be stored in Secrets Manager)</li>
+<li><strong>RDS Proxy can only be accessed from within the VPC</strong></li>
+</ul>
+</li>
+<li>To enable encryption in transit, download the <strong>AWS-provided root certificates</strong> and use them when connecting to DB</li>
+<li>IAM DB Auth (only for MySQL and PostgreSQL) - token based access (token valid for 15 mins)</li>
+<li>Secrets - credentials based access</li>
+<li>Monitoring
+<ul>
+<li>CW metrics - CPU utilization, connections, etc.</li>
+<li>Enhanced monitoring - OS processes, child processes, etc.</li>
+</ul>
+</li>
+<li><strong>Slow Query Logs</strong> - logs queries that took longer to execute (can be enabled)</li>
+<li>RDS supports using <strong>Transparent Data Encryption (TDE)</strong> to encrypt stored data on your DB instances running <strong>Microsoft SQL Server</strong>. TDE automatically encrypts data before it is written to storage, and automatically decrypts data when the data is read from storage.</li>
+</ul>
+<h3 id="aurora">Aurora</h3>
+<ul>
+<li><strong>Supports only MySQL &amp; PostgreSQL</strong></li>
+<li><strong>Backtrack</strong>: restore data at any point of time without taking backups</li>
+<li><strong>Writer Endpoint</strong> (Cluster Endpoint) points to the master</li>
+<li><strong>Automated failover</strong>
+<ul>
+<li>A read replica is promoted as the new master in less than 30 seconds. Aurora flips the <strong>CNAME</strong> record for your DB Instance to point at the healthy replica</li>
+<li>In case <strong>no replica</strong> is available, Aurora will attempt to <strong>create a new DB Instance</strong> in the <strong>same AZ</strong> as the original instance.</li>
+</ul>
+</li>
+<li>Maintains 6 copies of data across 3 AZ</li>
+<li>Aurora multi-master - Immediate failover for writes (high availability in terms of write). If disabled and the master node fails, need to promote a Read Replica as the new master (will take some time).</li>
+<li>Aurora Replicas are created in the same DB cluster within a Region. With <strong>Aurora MySQL</strong> you can also enable <strong>binlog replication</strong> to another Aurora DB cluster which can be in the <strong>same or different region</strong>.</li>
+<li>Important parameters:
+<ul>
+<li><code>max_connections</code> - max number of simultaneous connections Aurora allows</li>
+<li><code>max_user_connections</code> - max number of simultaneous connections Aurora allows for a single user</li>
+</ul>
+</li>
+</ul>
+<h3 id="dynamodb">DynamoDB</h3>
+<ul>
+<li><strong>Maximum item size: 400 KB</strong></li>
+<li>If the partition (hash) key is not highly diverse (only few unique values), add a suffix to the partition key to make the partition key diverse.</li>
+<li>Set <code>ConsistentRead: True</code> in API calls (<code>GetItem</code>, <code>BatchGetltem</code>, <code>Query</code>, <code>Scan</code>) to perform a strongly consistent read</li>
+<li>Provisioned capacity mode has <strong>optional throughput auto-scaling</strong> (automatically scales RCU and WCU) based on target utilization</li>
+<li>Provisioned throughput can be exceeded temporarily using <strong>Burst Capacity</strong></li>
+<li>Backup types:
+<ul>
+<li><strong>On-demand</strong></li>
+<li><strong>Point-in-time recovery (PITR)</strong> - automatic continuous backups</li>
+</ul>
+</li>
+<li><strong>Backups are written to S3</strong> under the hood but we cannot access these backup buckets</li>
+<li><code>Query</code> can be made on the table, LSI or GSI whereas <code>Scan</code> is done on the table.</li>
+<li><code>FilterExpression</code> - client-side filtering on non-key attributes after a query</li>
+<li><code>Query</code> and <code>Scan</code> return up to 1 MB of data (use pagination for more)</li>
+<li>Conditional write is supported by <code>PutItem</code>, <code>UpdateItem</code>, <code>DeleteItem</code> and <code>BatchWriteItem</code> APIs</li>
+<li>Queries on LSI support both eventual consistency and strong consistency whereas for GSI only eventual consistency is supported.</li>
+<li>If the writes are throttled on the GSI, the main table will be throttled for writes as well. So, provision WCUs equal or more than the main table for GSI.</li>
+<li>Max 10 nodes in DAX cluster</li>
+<li>Data retention in DynamoDB stream = 1 day</li>
+<li><strong>KCL</strong> (using <strong>Kinesis Adapter</strong>) is the <strong>recommended way to consume DynamoDB streams</strong> for real-time processing because it provides useful abstractions.</li>
+<li>No need to provision shards for DynamoDB streams</li>
+<li>DynamoDB stream can be used to recover items deleted through TTL</li>
+<li><strong>Fine-grained (low level) access control</strong> using <strong>federated login</strong> and:
+<ul>
+<li><code>LeadingKeys</code> - limit access to rows</li>
+<li><code>Attributes</code> - limit access to columns</li>
+</ul>
+</li>
+<li>Use <code>UpdateItem</code> operation to implement an <em><strong>atomic counter,</strong></em> a numeric attribute that is incremented, unconditionally.</li>
+<li><strong>Global Tables</strong> - multi-region, multi-active, replicated tables (need to enable DynamoDB streams)</li>
+<li><strong>DynamoDB Local</strong> - deploy DynamoDB locally for development or testing</li>
+<li><strong>AWS Database Migration Service (DMS)</strong> can be used to migrate data to DynamoDB</li>
+<li><strong>Partitioning data too finely is bad</strong> (can increase the overhead of retrieving and processing the partition metadata)</li>
+<li>Reduce page size to reduce consumed RCU</li>
+<li>To perform scan operations for analytics purposes, the best way is to create a <strong>shadow table</strong> (copy of the original table) and perform scans on it. This way scan operations don’t impact the RCU of the main table.</li>
+<li>To return the number of WCUs consumed by any write operation, set the <code>ReturnConsumedCapacity</code> parameter to one of the following:
+<ul>
+<li><code>TOTAL</code> - total number of WCU consumed</li>
+<li><code>INDEXES</code> - total number of WCU consumed, with subtotals for the table and any secondary indexes that were affected by the operation</li>
+<li><code>NONE</code> - returns nothing (default)</li>
+</ul>
+</li>
+<li>To perform an upsert operation, we only need permission for <code>GetItem</code> and <code>UpdateItem</code> (also has the permission to put an item if it doesn’t exist).</li>
+</ul>
+<h3 id="s3">S3</h3>
+<ul>
+<li>Max object size = 5 TB</li>
+<li>S3 objects are strongly consistent but the bucket configuration is eventually consistent</li>
+<li>Envelope encryption is used in SSE-KMS. The user uploading the file must have <code>kms:GenerateDataKey</code> permission.</li>
+<li>Enforce HTTPS connection by creating an S3 bucket policy that denies incoming request where <code>SecureTransport</code> is <code>false</code></li>
+<li>Pre-signed URL (Query String Authentication)</li>
+<li>Bucket versioning must be enabled for MFA delete</li>
+<li>S3 access logs (sent to another bucket) do not support <strong>Data Events</strong> &amp; <strong>Log File Validation</strong> (use CloudTrail for that)</li>
+<li>CloudTrail Logging
+<ul>
+<li>Bucket level API access logs enabled by default</li>
+<li>Object level API access logs not enabled by default</li>
+<li>Bucket owner needs to be the object owner to get object access logs</li>
+</ul>
+</li>
+<li>Replication
+<ul>
+<li>Versioning must be enabled for source and destination buckets</li>
+<li>Lifecycle actions are not replicated</li>
+<li>Can be configured at the S3 bucket level, prefix level, or object level using S3 object tags</li>
+</ul>
+</li>
+<li>Storage Classes
+<ul>
+<li>Standard</li>
+<li>IA
+<ul>
+<li>Standard IA</li>
+<li>One-zone IA</li>
+</ul>
+</li>
+<li>Glacier (need to restore objects)
+<ul>
+<li>Instant Retrieval ~ ms</li>
+<li>Flexible Retrieval
+<ul>
+<li>Expedited Retrieval → 1 - 5 mins (provision capacity option)</li>
+<li>Standard Retrieval → 3 - 5 h</li>
+<li>Bulk Retrieval → 5 - 12 h</li>
+</ul>
+</li>
+<li>Deep Archive
+<ul>
+<li>Standard Retrieval → 12 h</li>
+<li>Bulk Retrieval → 48 h</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Intelligent Tiering - no retrieval fee</li>
+</ul>
+</li>
+<li>Lifecycle Rules can be created for the bucket or prefix (ex <code>s3://mybucket/mp3/*</code>) or object tags (ex Department: Finance)</li>
+<li>S3 Analytics provides analytics to determine when to transition data into different storage classes (does not work for <code>ONEZONE_IA</code> &amp; <code>GLACIER</code>)</li>
+<li><strong>Multi-part upload</strong>
+<ul>
+<li>recommended for files &gt; 100 MB</li>
+<li>must use for files &gt; 5 GB</li>
+</ul>
+</li>
+<li><strong>Transfer acceleration</strong> - recommended for objects &gt; 1 GB (both upload and download)</li>
+<li>For the same combination of prefix and event type, we can only have one event rule.</li>
+<li>Targets for S3 notification events cannot be SQS FIFO queues</li>
+<li><strong>Access Point</strong> allows having a simple bucket policy and moving the complexity of defining access at the access point level using <strong>Access Point Policies</strong>.</li>
+<li>Each Access Point has a unique DNS name (public or private) through which it can be accessed.</li>
+<li><strong>S3 Object Lambda</strong> allows us to modify the object dynamically, using a Lambda function, when it is fetched.</li>
+<li><strong>Cannot search on metadata or tags directly in S3</strong> (need to build a search index in an external DB)</li>
+<li>With versioning, every successful write will create a new version of your object and will also send event notification.</li>
+<li>To ensure SSE-KMS on the bucket, add a bucket policy which denies any <code>s3:PutObject</code> action unless the request includes the <code>x-amz-server-side-encryption</code> header.</li>
+<li><code>x-amz-server-side-encryption-aws-kms-key-id</code> header is used to enforce SSE-KMS using a specific KMS key.</li>
+<li><strong>S3 Object Ownership</strong> setting can be used to make the bucket owner default owner of uploaded objects in the bucket.</li>
+<li>To perform a multipart upload with encryption using a KMS customer master key (CMK), the requester must have permission to the <strong><code>kms:Decrypt</code></strong>  and <strong><code>kms:GenerateDataKey*</code></strong> actions on the key. These permissions are required because Amazon S3 must decrypt and read data from the encrypted file parts before it completes the multipart upload.</li>
+</ul>
+<h3 id="cloudfront">CloudFront</h3>
+<ul>
+<li>TTL (0 sec - 1 year)</li>
+<li><strong>Edge Locations are present outside the VPC</strong> so the origin's SG must be configured to allow inbound requests from the list of public IPs of all the edge locations.</li>
+<li>Supports HTTP/RTMP protocol (<strong>does not support UDP protocol</strong>)</li>
+<li>To block a specific IP at the CloudFront level, deploy a WAF on CloudFront</li>
+<li>Origin Groups
+<ul>
+<li>Automated failover from <strong>primary</strong> to <strong>secondary</strong> origin (can be in <strong>different regions</strong>)</li>
+<li>CloudFront fails over to the secondary origin only when the HTTP method of the viewer request is <code>GET</code>, <code>HEAD</code>, or <code>OPTIONS</code>.</li>
+<li>CloudFront routes all incoming requests to the primary origin, even when a previous request failed over to the secondary origin. It only sends requests to the secondary origin after a request to the primary origin fails.</li>
+</ul>
+</li>
+<li>Signed URL/Cookies
+<ul>
+<li><strong>Trusted Key Group</strong> signer is the recommended way of configuring CloudFront to use signed URLs or cookies. It is not recommended to create a CloudFront key-pair in an AWS account and access it at the root level.</li>
+<li>The signer uses its private key to sign the URL or cookies, and CloudFront uses the public key to verify the signature.</li>
+<li>Can apply filtering rules (cannot for S3 pre-signed URL)</li>
+</ul>
+</li>
+<li><strong>Default Cache Key</strong>: hostname + resource portion of the URL</li>
+<li>The fewer items in the cache key, the better the caching performance.</li>
+<li>All HTTP headers, cookies, and query strings included in the Cache Key are automatically included in origin requests</li>
+<li><strong>Cache behavior</strong> - configure cache differently based on the path pattern in the request</li>
+<li>If the content is updated at the origin, we can invalidate the cache at all the edge locations using <code>CreateInvalidation</code> API.</li>
+<li>Can invalidate the entire cache, a single file or all the files at a given path.</li>
+<li><strong>Cache invalidation is not cost-effective</strong> (need to pay extra for invalidation requests)</li>
+<li>For a cost effective solution, version your objects using the path or filename and update the application to pull the new version.</li>
+<li>Send CloudFront logs in real-time to KDS</li>
+<li><strong>Origin Protocol Policy</strong>: used to enable SSL between the distribution and the origin</li>
+<li><strong>Viewer Protocol Policy</strong>: used to enable SSL between the client (user) and the distribution</li>
+<li>TLS termination takes place at the distribution level. If the distribution - origin connection needs to be encrypted, another TLS connection is established.</li>
+<li>You cannot directly integrate Cognito User Pools with CloudFront distribution as you have to create a separate Lambda@Edge function to accomplish the authentication via Cognito User Pools.</li>
+</ul>
+<h3 id="elasticache">ElastiCache</h3>
+<ul>
+<li>Need to provision EC2 instances (nodes for the cluster)</li>
+<li>Use <strong>Redis Auth</strong> to authenticate to ElastiCache for Redis</li>
+<li><strong>Automated failover over multi-AZ</strong> - if the primary node fails, one of the read-replicas will take over as the new master</li>
+<li>1 primary node and up to 5 read-replicas (asynchronous replication)</li>
+<li>Cluster Mode Enabled
+<ul>
+<li>You cannot manually promote any of the replica nodes to primary.</li>
+<li>You can only change the structure of a cluster, the node type, and the number of nodes by restoring from a backup.</li>
+</ul>
+</li>
+<li>In write through caching strategy, the cache and the DB cannot be updated at the same time via a single atomic operation as these are two separate systems. The cache must be updated or invalidated after writing to the DB.</li>
+</ul>
+<h3 id="athena">Athena</h3>
+<ul>
+<li>Use compressed or columnar data for cost-savings (due to less scan)</li>
+<li>Use fewer large files (&gt; 128 MB) instead of many small files for faster processing</li>
+<li><strong>Federated Query</strong> - run SQL queries on data stored in any data source using <strong>Data Source Connector</strong> running on Lambda</li>
+<li>The <code>MSCK REPAIR TABLE</code> command scans Amazon S3 for Hive compatible partitions that were added to the file system after the table was created. It compares the partitions in the table metadata and the partitions in S3. If new partitions are present in S3, it adds those partitions to the metadata and to the Athena table. It can work better than DDL commands if have more than a few thousand partitions and DDL is facing <strong>timeout issues.</strong></li>
+</ul>
+<h3 id="opensearch">OpenSearch</h3>
+<ul>
+<li>Used in combination with a database to perform <strong>enhanced search operations on the database</strong> (can search on any field, even supports <strong>partial matches)</strong></li>
+<li>Need to provision a cluster of instances (supports multi-AZ)</li>
+<li><strong>Does not support SQL</strong> (has its own query language)</li>
+<li>CW logs can be written to OpenSearch using KDF for advanced search capability</li>
+</ul>
+<h3 id="cli-sdk">CLI &amp; SDK</h3>
+<ul>
+<li>The CLI or SDK looks for the credentials in the following order:
+<ul>
+<li>CLI or SDK options</li>
+<li>Environment Variables</li>
+<li><code>~/.aws/credentials</code> file</li>
+<li><code>~/.aws/config</code> file</li>
+<li>ECS Container Credentials or EC2 Instance Profile Credentials</li>
+</ul>
+</li>
+<li>The CLI or SDK automatically signs the request made by you to the AWS HTTP APIs so that AWS can verify whether or not the request came from you.</li>
+<li><strong>The request is signed using your AWS credentials</strong> using AWS proprietary <strong>SigV4 signing algorithm</strong>.</li>
+<li>Custom <strong>HTTP requests</strong> made to the AWS API must be signed by the user.</li>
+</ul>
+<h3 id="extras">Extras</h3>
+<ul>
+<li>AWS requires approximately 5 weeks of usage data to generate budget forecasts.</li>
+<li><strong>Never store AWS credentials in your code.</strong> If your code is running inside AWS, use IAM roles to access AWS services. If your code is running outside AWS, use environment variables or named AWS profiles.</li>
+<li>By default, the AWS Management Console is organized by AWS service. But with <strong>Resource Groups</strong>, you can create a custom console that organizes and consolidates information based on criteria specified in tags, or the resources in an AWS CloudFormation stack.</li>
+</ul>
+<h3 id="cloudwatch">CloudWatch</h3>
+<ul>
+<li>Custom Metrics
+<ul>
+<li>Standard: 1 min</li>
+<li>High Resolution: 1 sec</li>
+<li>Alarm period: 10 sec</li>
+</ul>
+</li>
+<li>EC2 Monitoring
+<ul>
+<li>CW Agent must be running</li>
+<li>Standard: 5 min</li>
+<li>Detailed Monitoring: 1 min (can be enabled using <code>aws ec2 monitor-instances</code> command)</li>
+</ul>
+</li>
+<li>An alarm monitors a single CW metric</li>
+<li>Alarm Configuration:
+<ul>
+<li><strong>Period</strong>: length of time (seconds) to evaluate the metric to create a data point for the alarm (<strong>min 10 sec</strong> for high resolution custom metric)</li>
+<li><strong>Evaluation Period</strong>: number of the most recent periods (data points) to consider when determining the alarm state</li>
+<li><strong>Datapoints to Alarm</strong>: number of data points within the evaluation period that must be breached to cause the alarm to go into <code>ALARM</code> state</li>
+</ul>
+</li>
+<li><strong>Composite Alarms</strong> are used to reduce alarm noise</li>
+<li>Log Encryption must be done using CloudWatch Logs API (cannot be done through the console)</li>
+</ul>
+<h3 id="cloudtrail">CloudTrail</h3>
+<ul>
+<li><strong>Global Service</strong> (a single trail can be applied to multiple regions)</li>
+<li><strong>Event retention: 90 days</strong></li>
+<li>Export CloudTrail logs into
+<ul>
+<li>CloudWatch Logs</li>
+<li>S3 (encrypted by default using <strong>SSE-S3</strong>)</li>
+</ul>
+</li>
+<li>CloudTrail logs up to the last 90 days can be analyzed in CloudTrail Console. Older logs should be present in S3 and can be analyzed using <strong>Athena</strong>.</li>
+<li>Modifications to log files can be detected by enabling <strong>Log File Validation</strong> on the logging bucket</li>
+<li>A single KMS key can be used to encrypt log files for trails applied to all regions</li>
+<li>Organization trail
+<ul>
+<li>Trail that logs events across all the accounts in an organization</li>
+<li>Must be created in the master account</li>
+<li>Member accounts will be able to see the organization trail, but cannot modify or delete it.</li>
+<li>By default, member accounts will not have access to the log files for the organization trail in the S3 bucket.</li>
+</ul>
+</li>
+</ul>
+<h3 id="x-ray">X-Ray</h3>
+<ul>
+<li>
+<p><strong>Preferred over CloudWatch to debug serverless or distributed applications</strong></p>
+</li>
+<li>
+<p>X-Ray daemon can <strong>send traces across accounts</strong> <strong>by assuming an IAM Role</strong> (allows to have a central account for application tracing)</p>
+</li>
+<li>
+<p>X-Ray SDK sends traces to X-Ray daemon through <strong>UDP</strong> on <strong>port 2000</strong></p>
+</li>
+<li>
+<p><strong>Annotations</strong>: indexed key-value pairs attached to traces for search capability and filtering traces using <strong>filter expressions</strong></p>
+</li>
+<li>
+<p>Sampling rules can be modified in the X-Ray console without changing the application code or restarting the application. The sampling rules are automatically applied to the X-Ray daemons.</p>
+</li>
+<li>
+<p>By <strong>default</strong>, the X-Ray SDK records the <strong>first request each second</strong> (<strong>reservoir</strong>), and <strong>five percent of any additional requests</strong> (<strong>rate</strong>).</p>
+</li>
+<li>
+<p>With Elastic Beanstalk</p>
+<ul>
+<li>Enable X-Ray daemon by including the <code>xray-daemon.config</code> configuration file in the <code>.ebextensions</code> directory of your source code.</li>
+<li>X-Ray daemon must be manually setup in Multi-Container Docker</li>
+</ul>
+</li>
+<li>
+<p>With ECS, X-Ray daemon must be running as a container</p>
+<ul>
+<li>EC2 - one X-Ray daemon container per EC2 instance or sidecar</li>
+<li>Fargate - one X-Ray daemon container per task (sidecar)</li>
+<li>Create a Docker image that runs the X-Ray daemon, upload it to a Docker image repository, and then deploy it to the Amazon ECS cluster.</li>
+</ul>
+</li>
+<li>
+<p>Trace segments can be uploaded using <code>PutTraceSegments</code> API</p>
+</li>
+<li>
+<p>X-Ray daemon uses <code>PutTelemetryRecords</code> API to send telemetry data</p>
+</li>
+<li>
+<p>Lambda functions use environment variables to facilitate communication with X-Ray</p>
+<ul>
+<li><code>AWS_XRAY_DAEMON_ADDRESS</code></li>
+<li><code>_X_AMZN_TRACE_ID</code></li>
+<li><code>AWS_XRAY_CONTEXT_MISSING</code></li>
+</ul>
+</li>
+<li>
+<p>Use the <code>GetTraceSummaries</code> API to get the list of trace IDs and then retrieve the list of traces using <code>BatchGetTraces</code> API</p>
+</li>
+<li>
+<p>Prefer <strong>AWS Distro for OpenTelemetry</strong> over X-Ray if you want to send traces to multiple different tracing backends without having to re-instrument your code.</p>
+</li>
+<li>
+<p>We can define arbitrary subsegments to instrument specific functions or lines of code in an application.</p>
+<p>!<a title="https://media-tutorials-dojo.s3-ap-southeast-2.amazonaws.com/pic.PNG" href="https://media-tutorials-dojo.s3-ap-southeast-2.amazonaws.com/pic.PNG">https://media-tutorials-dojo.s3-ap-southeast-2.amazonaws.com/pic.PNG</a></p>
+</li>
+<li>
+<p>A subset of segment fields are indexed by X-Ray for use with filter expressions. Example, if you set the <code>user</code> field on a segment to a unique identifier, you can search for segments associated with specific users in the X-Ray console or by using the <code>GetTraceSummaries</code> API.</p>
+</li>
+</ul>
+<h3 id="codecommit">CodeCommit</h3>
+<ul>
+<li><strong>Repos are encrypted by default</strong> (at rest using KMS keys and in flight using HTTPS or SSH)</li>
+<li>Enable <strong>repository level notifications</strong> on an <strong>SNS topic</strong></li>
+<li>IAM supports CodeCommit with three types of credentials:
+<ul>
+<li><strong>Git credentials</strong>: an IAM-generated username and password pair you can use to communicate with CodeCommit repositories over <strong>HTTPS</strong></li>
+<li><strong>SSH keys</strong>: a locally generated public-private key pair that you can associate with your IAM user to communicate with CodeCommit repositories over <strong>SSH</strong></li>
+<li><strong>AWS access keys</strong>: which you can use with the <strong>Git Credential Helper</strong> included with the AWS CLI to communicate with CodeCommit repositories over <strong>HTTPS</strong></li>
+</ul>
+</li>
+<li><strong>cURL cannot be used to work with the CodeCommit API</strong> (must use AWS SDK)</li>
+<li>Recommended to generate Git credentials in the IAM console to access repos in CodeCommit</li>
+</ul>
+<h3 id="codebuild">CodeBuild</h3>
+<ul>
+<li><strong>CodeBuild can be run locally</strong> (requires Docker) using <strong>CodeBuild Agent</strong> for troubleshooting purposes.</li>
+<li><strong>By default, CodeBuild containers are launched outside the VPC.</strong> It cannot access resources within the VPC. When creating a CodeBuild project, we can specify the VPC where it should be launched. This way, the CodeBuild project can access resources within the VPC.</li>
+<li>Can’t access the CodeBuild containers</li>
+<li><strong>CodeBuild scales automatically</strong> to meet peak build requests.</li>
+</ul>
+<h3 id="codedeploy">CodeDeploy</h3>
+<ul>
+<li><strong>Compute Platform</strong> - what platform the application will be deployed to
+<ul>
+<li>EC2 or On-Premises (<strong>CodeDeploy Agent</strong> must be installed)</li>
+<li>AWS Lambda</li>
+<li>Amazon ECS</li>
+</ul>
+</li>
+<li><strong>Deployment Group</strong> - group of tagged EC2 instances (allows to deploy gradually, ex: first deploy to <code>dev</code>, then <code>test</code> and then <code>prod</code>)</li>
+<li><strong>Service Role</strong> - IAM Role for CodeDeploy to perform operations on EC2 instances, ASGs, ELBs for deployment</li>
+<li>Hooks
+<ul>
+<li>Lambda: BeforeAllowTraffic &gt; AfterAllowTraffic</li>
+<li>EC2: BeforeInstall → AfterInstall → ApplicationStart → ValidateService</li>
+<li>ECS: BeforeInstall → AfterInstall → AfterAllowTestTraffic → BeforeAllowTraffic → AfterAllowTraffic</li>
+</ul>
+</li>
+<li>The content in the <code>resources</code> section varies, depending on the compute platform of your deployment. For Lambda functions, it has <code>name</code>, <code>alias</code>, <code>currentversion</code> and <code>targetversion</code>.</li>
+<li>Deployment Type
+<ul>
+<li>In place (EC2, on-premise)</li>
+<li>Blue/Green (EC2, Lambda, ECS)</li>
+</ul>
+</li>
+<li>Once deployment fails, EC2 instances stay in failed state</li>
+<li>New deployments will first be deployed to failed instances</li>
+<li>If a rollback happens, CodeDeploy redeploys the last known good revision with a new deployment ID (does not restore to a previous version).</li>
+<li><code>InvalidSignatureException</code> - the date or time in CodeDeploy (AWS) does not match that in the EC2 instance where the application is to be deployed</li>
+</ul>
+<h3 id="codepipeline">CodePipeline</h3>
+<ul>
+<li><strong>Each stage in the pipeline creates an artifact which is stored in S3</strong> (<strong>Artifact Store</strong>). The next stage uses this artifact as input.</li>
+<li><strong>Within a stage, we have action groups where actions can run sequentially or in parallel.</strong></li>
+<li><strong>Events are generated in EventBridge (CW Events) for changes in the state of a pipeline</strong>.</li>
+<li>CodePipeline can be triggered by an EB event generated by CodeCommit</li>
+<li>For a version control application outside of AWS (eg. GitHub), need to use <strong>CodeStar Source Connection</strong> to trigger the CodePipeline on event from GitHub.</li>
+<li>For manual approval, the owner must be AWS and the user must have <code>codepipeline:GetPipeline*</code> permission to view the pipeline and <code>codepipeline:PutApprovalResult</code> permission to approve the pipeline.</li>
+<li>CloudFormation can be integrated with CodePipeline to create a test stack and delete it after the tests have been run.</li>
+</ul>
+<h3 id="codeartifact">CodeArtifact</h3>
+<ul>
+<li><strong>Artifacts (dependencies) live inside the VPC</strong></li>
+<li>A repository can have <strong>max 10 upstream repositories</strong></li>
+<li>Domain - single shared storage for all the repositories across multiple accounts</li>
+<li><strong>Domain Resource-based Policy</strong>: domain administrator can apply policy across the domain such as:
+<ul>
+<li>Restricting which accounts have access to repositories in the domain</li>
+<li>Who can configure connections to public repositories to use as sources of packages</li>
+</ul>
+</li>
+</ul>
+<h3 id="codestar">CodeStar</h3>
+<ul>
+<li><strong>Create CICD-ready projects</strong> for <strong>EC2, Lambda and Elastic Beanstalk</strong></li>
+<li>One dashboard to view all the components</li>
+</ul>
+<h3 id="codeguru">CodeGuru</h3>
+<ul>
+<li><strong>CodeGuru Profiler</strong> works by running <strong>CodeGuru Agent</strong> alongside the application</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Managed Streaming for Apache Kafka (MSK) - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Managed Streaming for Apache Kafka (MSK)</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692789325205"
+                  >2023-08-23 12:15</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692801994728"
+                  >2023-08-23 15:46</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Messaging</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><p><img src="/_resources/932635cb6f8e4d6a8ef8d941d822fbf0.png" /></p>
+<h1 id="intro">Intro</h1>
+<ul>
+<li>Managed Apache Kafka cluster on AWS</li>
+<li>Used to stream data (alternative to KDS)</li>
+<li>Creates and <strong>manages Kafka broker nodes and Zookeeper nodes</strong></li>
+<li>MSK cluster is deployed in the VPC (3 AZ for HA)</li>
+<li>Automatic recovery from common Kafka failures</li>
+<li><strong>Data is stored on EBS volumes as long as needed</strong></li>
+<li><strong>MSK Serverless</strong>: auto-scaling MSK cluster without provisioning or managing capacity</li>
+<li>KMS for at-rest encryption</li>
+<li>No in-flight encryption</li>
+</ul>
+<h1 id="kds-vs-msk">KDS vs MSK</h1>
+<table>
+<thead>
+<tr>
+<th>KDS</th>
+<th>MSK</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 MB message size limit</td>
+<td>1 MB default (max 10 MB)</td>
+</tr>
+<tr>
+<td>Uses data streams with shards</td>
+<td>Uses Kafka topics with partitions (similar)</td>
+</tr>
+<tr>
+<td>Shard splitting and merging for scaling</td>
+<td>Partitions can only be added to a topic</td>
+</tr>
+<tr>
+<td>TLS for in-flight encryption</td>
+<td>Plaintext (no in-flight encryption) or TLS</td>
+</tr>
+</tbody>
+</table>
+<h1 id="msk-consumers">MSK Consumers</h1>
+<p><img src="/_resources/efc90c5e15574f1f8abeb2526a089d1b.png" />{width=70%}</p>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

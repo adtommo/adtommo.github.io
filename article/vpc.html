@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>VPC - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">VPC</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692712744211"
+                  >2023-08-22 14:59</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692802367104"
+                  >2023-08-23 15:52</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Networking</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li><strong>Regional resource</strong></li>
+<li>Soft limit of 5 VPCs per region</li>
+<li>Only the Private IPv4 ranges are allowed</li>
+</ul>
+<h1 id="subnets">Subnets</h1>
+<ul>
+<li>Sub-ranges of IP addresses within the VPC</li>
+<li><strong>Each subnet is bound to an AZ</strong></li>
+<li>Subnets in a VPC cannot have overlapping CIDRs</li>
+<li><strong>Default VPC only has public subnets</strong> (1 public subnet per AZ, no private subnet)</li>
+<li><strong>AWS reserves 5 IP addresses (first 4 &amp; last 1) in each subnet</strong>. These 5 IP addresses are not available for use.<br />
+Example: if CIDR block 10.0.0.0/24, then reserved IP addresses are 10.0.0.0, 10.0.0.1, 10.0.0.2, 10.0.0.3 &amp; 10.0.0.255</li>
+</ul>
+<blockquote>
+<p>To make the EC2 instances running in private subnets accessible on the internet, place them behind an internet-facing (running in public subnets) Elastic Load Balancer.</p>
+</blockquote>
+<blockquote>
+<p>There is no concept of Public and Private subnets. Public subnets are subnets that have:</p>
+<ul>
+<li>“Auto-assign public IPv4 address” set to “Yes”</li>
+<li>The subnet route table has an attached Internet Gateway</li>
+</ul>
+<p>This allows the resources within the subnet to make requests that go to the public internet. <strong>A subnet is private by default.</strong></p>
+<p>Since the resources in a private subnet don't have public IPs, they need a NAT gateway for address translation to be able to make requests that go to the public internet. NAT gateway also prevents these private resources from being accessed from the internet.</p>
+</blockquote>
+<h1 id="internet-gateway-igw">Internet Gateway (IGW)</h1>
+<p><img src="/_resources/31db3db6b92a438d97f1bb4d585bd843.png" /></p>
+<ul>
+<li>Allows resources in a VPC to connect to the Internet</li>
+<li><strong>Attached to the VPC</strong> (not subnets)</li>
+<li>Should be used to <strong>connect public resources to the internet</strong> (use NAT gateway for private resources since they need network address translation)</li>
+<li>Route table of the public subnets must be edited to allow requests destined outside the VPC to be routed to the IGW</li>
+</ul>
+<p><img src="/_resources/dff329b170564384a3f95dcbe63d406b.png" /></p>
+<blockquote>
+<p>IGW performs network address translation (NAT) for a public EC2 instance</p>
+</blockquote>
+<h1 id="network-address-translation-nat-instance">Network Address Translation (NAT) Instance</h1>
+<p><img src="/_resources/186ffcf5ff52450d80de5930efcb1895.png" /></p>
+<ul>
+<li>An EC2 instance <strong>launched in the public subnet</strong> which performs network address translation to enable private instances to use the public IP of the NAT instance to access the internet. This is exactly the same as how routers perform NAT. This also prevents the private instances from being accessed from the public internet.</li>
+<li><strong>Must disable EC2 setting: source / destination IP check on the NAT instance</strong> as the IPs can change.</li>
+<li><strong>Must have an Elastic IP attached to it</strong></li>
+<li>Route Tables for private subnets must be configured to route internet-destined traffic to the NAT instance (its elastic IP)</li>
+<li><strong>Can be used as a Bastion Host</strong></li>
+</ul>
+<p><img src="/_resources/7406d65bdf124666b443796810d02b59.png" />{width=50%}</p>
+<h2 id="disadvantages"><strong>Disadvantages</strong></h2>
+<ul>
+<li>Not highly available or resilient out of the box. Need to create an ASG in multi-AZ + resilient user-data script</li>
+<li>Internet traffic bandwidth depends on EC2 instance type</li>
+<li>You must manage Security Groups &amp; rules:
+<ul>
+<li>Inbound:
+<ul>
+<li>Allow HTTP / HTTPS traffic coming from Private Subnets</li>
+<li>Allow SSH from your home network (access is provided through Internet Gateway)</li>
+</ul>
+</li>
+<li>Outbound:
+<ul>
+<li>Allow HTTP / HTTPS traffic to the Internet</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="nat-gateway">NAT Gateway</h1>
+<p><img src="/_resources/4e86590f701a41faa3f887481d22e2af.png" /></p>
+<ul>
+<li>AWS managed NAT with <strong>bandwidth autoscaling</strong> (up to 45Gbps)</li>
+<li>Preferred over NAT instances</li>
+<li><strong>Uses an Elastic IP</strong> and Internet Gateway behind the scenes</li>
+<li><strong>Created in a public subnet</strong></li>
+<li><strong>Bound to an AZ</strong></li>
+<li><strong>Cannot be used by EC2 instances in the same subnet</strong> (only from other subnets)</li>
+<li><strong>Cannot be used as a Bastion Host</strong></li>
+<li>Route Tables for private subnets must be configured to route internet-destined traffic to the NAT gateway<br />
+<img src="/_resources/f2758c9e099a4a10ba6d549c9a6335b2.png" />
+<ul>
+<li>No Security Groups to manage</li>
+<li>Pay per hour</li>
+</ul>
+</li>
+</ul>
+<h2 id="high-availability">High Availability</h2>
+<ul>
+<li>Create NAT gateways in public subnets bound to different AZ all routing outbound connections to the IGW (attached to the VPC)</li>
+<li>No cross-AZ failover needed because if an AZ goes down, all of the instances in that AZ also go down.<br />
+<img src="/_resources/7d63a39903ee44e39dfde13ad639402f.png" />{width=70%}</li>
+</ul>
+<h1 id="network-access-control-list-nacl">Network Access Control List (NACL)</h1>
+<ul>
+<li>NACL is a firewall at the subnet level</li>
+<li>One NACL per subnet but a NACL can be attached to multiple subnets</li>
+<li><strong>New subnets are assigned the Default NACL</strong></li>
+<li><strong>Default NACL allows all inbound &amp; outbound requests</strong></li>
+</ul>
+<p><img src="/_resources/a5d9ba26fadd4b4b81926ff103fab08f.png" /></p>
+<ul>
+<li>NACL Rules
+<ul>
+<li>Based only on IP addresses</li>
+<li>Rules number: 1-32766 (lower number has higher precedence)</li>
+<li>First rule match will drive the decision</li>
+<li>The last rule denies the request (only when no previous rule matches)</li>
+</ul>
+</li>
+</ul>
+<h2 id="nacl-vs-security-group">NACL vs Security Group</h2>
+<p><img src="/_resources/41f88ce194d3480bb06721ffca78dc33.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Security Group</th>
+<th>NACL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Firewall for EC2</td>
+<td>Firewall for subnets</td>
+</tr>
+<tr>
+<td>Supports only Allow rules</td>
+<td>Supports both Allow and Deny rules</td>
+</tr>
+<tr>
+<td>Stateful (only request will be evaluated against the SG rules)</td>
+<td>Stateless (both request and response will be evaluated against the NACL rules)</td>
+</tr>
+<tr>
+<td>All rules are evaluated</td>
+<td>Only the first matched rule is considered</td>
+</tr>
+</tbody>
+</table>
+<h1 id="vpc-peering">VPC Peering</h1>
+<p><img src="/_resources/8bc4978ea53e45978ed866c54c28946d.png" /></p>
+<ul>
+<li>Connect two VPCs (could be in <strong>different regions or accounts</strong>) using the AWS private network</li>
+<li>Participating VPCs must have <strong>non-overlapping CIDR</strong></li>
+<li>VPC Peering connection is <strong>non-transitive</strong> (A - B, B - C != A - C) because it works based on route-table rules.</li>
+<li>Must update route tables in each VPC’s subnets to ensure requests destined to the peered VPC can be routed through the peering connection
+<ul>
+<li><img src="/_resources/6c384f86a15f4754a22d9b3270cf0069.png" /></li>
+<li><img src="/_resources/500ef87e450e4116a55d79f71f2cc0a7.png" /></li>
+</ul>
+</li>
+<li>You can reference a security group in a peered VPC across account or region. This allows us to use SG instead of CIDR when configuring rules.</li>
+</ul>
+<h1 id="vpc-endpoints">VPC Endpoints</h1>
+<p><img src="/_resources/53a5e32f132a425cb1f3792d9593936a.png" /></p>
+<ul>
+<li><strong>Private endpoints</strong> within your VPC that allow AWS services to privately connect to resources within your VPC without traversing the public internet (cheaper)</li>
+<li>Powered by <strong>AWS PrivateLink</strong></li>
+<li><strong>Route table is updated automatically</strong></li>
+<li><strong>Bound to a region</strong> (do not support inter-region communication)</li>
+<li>Need to create separate endpoints for different resources</li>
+<li>Two types:
+<ul>
+<li><strong>Interface Endpoint</strong>
+<ul>
+<li>Provisions an <strong>ENI</strong> (private IP) as an entry point per subnet</li>
+<li>Need to <strong>attach a security group to the interface endpoint</strong> to control access</li>
+<li>Supports most AWS services</li>
+</ul>
+</li>
+<li><strong>Gateway Endpoint</strong>
+<ul>
+<li>Provisions a gateway</li>
+<li>Must be used as a target in a route table</li>
+<li>Supports only <strong>S3</strong> and <strong>DynamoDB</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="vpc-flow-logs">VPC Flow Logs</h1>
+<ul>
+<li>Captures information about <strong>IP traffic</strong> going into your <strong>interfaces</strong></li>
+<li>Three levels:
+<ul>
+<li><strong>VPC</strong> Flow Logs</li>
+<li><strong>Subnet</strong> Flow Logs</li>
+<li><strong>ENI</strong> Flow Logs</li>
+</ul>
+</li>
+<li>Can be configured to show accepted, rejected or all traffic</li>
+<li>Flow logs data can be sent to <strong>S3</strong> (bulk analytics) or <strong>CloudWatch Logs</strong> (near real-time decision making)</li>
+<li>Query VPC flow logs using <strong>Athena</strong> in S3 or <strong>CloudWatch Logs Insights</strong></li>
+</ul>
+<h1 id="connecting-to-on-premise">Connecting to On-Premise</h1>
+<ul>
+<li><strong>Site-to-site VPN</strong> - <strong>IPSec encrypted</strong> connection over the public internet</li>
+<li><strong>Direct Connect (DX)</strong> - Dedicated connection
+<ul>
+<li>Not encrypted (but private connection)</li>
+<li>Takes about 30 days to setup</li>
+</ul>
+</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

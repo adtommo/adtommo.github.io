@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Aurora - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Aurora</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692789694543"
+                  >2023-08-23 12:21</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692789741228"
+                  >2023-08-23 12:22</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Storage &amp; Querying</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Regional Service (supports global databases)</li>
+<li>Supports Multi AZ</li>
+<li>AWS managed Relational DB cluster</li>
+<li>Preferred over <a href="/article/rds">RDS</a></li>
+<li>Auto-scaling (max 128TB)</li>
+<li>Up to 15 read replicas</li>
+<li><strong>Asynchronous Replication</strong> (milliseconds)</li>
+<li><strong>Supports only MySQL &amp; PostgreSQL</strong></li>
+<li>Cloud-optimized (5x performance improvement over MySQL on RDS, over 3x the performance of PostgreSQL on RDS)</li>
+<li><strong>Backtrack</strong>: restore data at any point of time without taking backups</li>
+</ul>
+<h1 id="endpoints">Endpoints</h1>
+<ul>
+<li><strong>Writer Endpoint</strong> (Cluster Endpoint)
+<ul>
+<li>Always points to the master (can be used for read/write)</li>
+<li>Each Aurora DB cluster has one cluster endpoint</li>
+</ul>
+</li>
+<li><strong>Reader Endpoint</strong>
+<ul>
+<li>Provides load-balancing for read replicas only (used to read only)</li>
+<li>If the cluster has no read replica, it points to master (can be used to read/write)</li>
+<li>Each Aurora DB cluster has one reader endpoint</li>
+</ul>
+</li>
+<li><strong>Custom Endpoint</strong>:
+<ul>
+<li>Load balance to a subset of replicas</li>
+<li>Provides load-balanced based on criteria other than the read-only or read-write capability of the DB instances like instance class (ex, direct internal users to low-capacity instances and direct production traffic to high-capacity instances)</li>
+</ul>
+</li>
+</ul>
+<h1 id="high-availability-read-scaling">High Availability &amp; Read Scaling</h1>
+<ul>
+<li>Self healing (if some data is corrupted, it will be automatically healed)</li>
+<li>Storage is striped across 100s of volumes (more resilient)</li>
+<li><strong>Automated failover</strong>
+<ul>
+<li>A read replica is promoted as the new master in less than 30 seconds</li>
+<li>Aurora flips the <strong>CNAME</strong> record for your DB Instance to point at the healthy replica</li>
+<li>In case <strong>no replica</strong> is available, Aurora will attempt to <strong>create a new DB Instance</strong> in the <strong>same AZ</strong> as the original instance. This replacement of the original instance is done on a <strong>best-effort basis</strong> and may not succeed.</li>
+</ul>
+</li>
+<li>Support for <strong>Cross Region Replication</strong></li>
+<li>Aurora maintains 6 copies of your data across 3 AZ:
+<ul>
+<li>4 copies out of 6 needed for writes (can still write if 1 AZ completely fails)</li>
+<li>3 copies out of 6 needed for reads</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>Each Read Replica is associated with a priority tier (0-15). In the event of a failover, Amazon Aurora will promote the Read Replica that has the highest priority (lowest tier). If two or more Aurora Replicas share the same tier, then Aurora promotes the replica that is largest in size. If two or more Aurora Replicas share the same priority and size, then Aurora promotes an arbitrary replica in the same promotion tier.</p>
+</blockquote>
+<h1 id="encryption-network-security">Encryption &amp; Network Security</h1>
+<ul>
+<li>Encryption at rest using KMS (same as RDS)</li>
+<li>Encryption in flight using SSL (same as RDS)</li>
+<li>You can’t SSH into Aurora instances (same as RDS)</li>
+<li>Network Security is managed using Security Groups (same as RDS)</li>
+<li>EC2 instances should access the DB using <strong>IAM DB Auth</strong> but they can also do it using credentials fetched from the parameter store (same as RDS)</li>
+</ul>
+<h1 id="aurora-serverless">Aurora Serverless</h1>
+<ul>
+<li>Optional</li>
+<li>Automated database instantiation and auto scaling based on usage</li>
+<li>Good for unpredictable workloads</li>
+<li>No capacity planning needed</li>
+<li>Pay per second</li>
+</ul>
+<h1 id="aurora-multi-master">Aurora Multi-Master</h1>
+<ul>
+<li>Optional</li>
+<li>Every node (replica) in the cluster can read and write</li>
+<li><strong>Immediate failover for writes</strong> (high availability in terms of write). If disabled and the master node fails, need to promote a Read Replica as the new master (will take some time).</li>
+<li><strong>Client needs to have multiple DB connections for failover</strong></li>
+</ul>
+<h1 id="aurora-global-database">Aurora Global Database</h1>
+<ul>
+<li>Entire database is replicated across regions to recover from region failure</li>
+<li>Designed for <strong>globally distributed applications</strong> with <strong>low latency local reads</strong> in each region</li>
+<li><strong>1 Primary Region</strong> (read / write)</li>
+<li><strong>Up to 5 secondary (read-only) regions</strong> (replication lag &lt; 1 second)</li>
+<li>Up to 16 Read Replicas per secondary region</li>
+<li>Helps for decreasing latency for clients in other geographical locations</li>
+<li><strong>RTO of less than 1 minute</strong> (to promote another region as primary)</li>
+</ul>
+<h1 id="aurora-events">Aurora Events</h1>
+<ul>
+<li>Invoke a <strong>Lambda</strong> function from an <strong>Aurora MySQL-compatible DB cluster</strong> with a <strong>native function</strong> or a <strong>stored procedure</strong> (same as RDS events)</li>
+<li>Used to capture data changes whenever a row is modified</li>
+</ul>
+<h1 id="security">Security</h1>
+<h2 id="at-rest-encryption">At-rest Encryption</h2>
+<ul>
+<li>The master and replicas can be encrypted as rest using KMS, but encryption must be enabled at launch time.</li>
+<li>If master is not encrypted, read replicas cannot be encrypted.</li>
+<li>To encrypt an unencrypted database, create a snapshot and restore the database as encrypted using a key from KMS.</li>
+</ul>
+<h2 id="in-flight-encryption">In-flight Encryption</h2>
+<p>Client needs to use TLS root certificates provided by AWS to establish TLS (in-flight encryption) with RDS or Aurora.</p>
+<h2 id="db-authentication">DB Authentication</h2>
+<ul>
+<li>Username:Password based authentication (available on both RDS and Aurora)</li>
+<li><strong>IAM DB Auth</strong> - use IAM roles to authenticate to DB instead of configuring users on DB (recommended as it allows us to manage all the authentication in IAM)</li>
+</ul>
+<h2 id="network-security">Network Security</h2>
+<ul>
+<li>Security Groups control network access to the underlying EC2 instances</li>
+<li>No SSH access available as the underlying instances are AWS managed (except on RDS custom)</li>
+</ul>
+<h2 id="audit-logs">Audit Logs</h2>
+<ul>
+<li>Audit logs can be enabled - store logs locally for a short period of time</li>
+<li>Send audit logs to CloudWatch for log retention</li>
+</ul>
+<h1 id="misc">Misc</h1>
+<ul>
+<li>Aurora Replicas are created in the same DB cluster within a Region. With <strong>Aurora MySQL</strong> you can also enable <strong>binlog replication</strong> to another Aurora DB cluster which can be in the <strong>same or different region</strong>.</li>
+<li>Important parameters:
+<ul>
+<li><code>max_connections</code> - max number of simultaneous connections Aurora allows</li>
+<li><code>max_user_connections</code> - max number of simultaneous connections Aurora allows for a single user</li>
+</ul>
+</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

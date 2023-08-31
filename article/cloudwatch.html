@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>CloudWatch - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">CloudWatch</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692798059112"
+                  >2023-08-23 14:40</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692802504502"
+                  >2023-08-23 15:55</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Observability</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li><strong>Serverless</strong> logging and monitoring for AWS services and application</li>
+</ul>
+<h1 id="metrics">Metrics</h1>
+<ul>
+<li>Variables to monitor in CloudWatch</li>
+<li>Dimension is an attribute of a metric (instance id, environment, etc.)</li>
+<li>Up to <strong>30 dimensions per metric</strong></li>
+<li>Segregated by namespaces (which AWS service they monitor)</li>
+</ul>
+<h2 id="custom-metrics">Custom Metrics</h2>
+<ul>
+<li>Define and send your own custom metrics to CloudWatch using <code>PutMetricData</code> ****API</li>
+<li>Metric resolution (<code>StorageResolution</code> API) - frequency of sending metric data</li>
+<li><strong>Standard: 1 min</strong></li>
+<li><strong>High Resolution: 1 sec</strong> (higher cost)</li>
+<li>Accepts metric data points <strong>two weeks in the past and two hours in the future</strong></li>
+</ul>
+<h2 id="ec2-monitoring">EC2 Monitoring</h2>
+<ul>
+<li>Must run a <strong>CloudWatch agent</strong> on instance to push system <strong>metrics and logs</strong> to CloudWatch. Instance role (IAM) must allow the instance to push logs to CloudWatch.</li>
+<li>EC2 instances have metrics <strong>every 5 minutes</strong></li>
+<li>With <strong>detailed monitoring</strong> (for a cost), you get metrics <strong>every 1 minute</strong> (can be enabled using <code>aws ec2 monitor-instances</code> command)</li>
+<li>Use detailed monitoring if you want to react faster to changes (eg. scale faster for your ASG)</li>
+<li><strong>Available metrics in CloudWatch</strong>:
+<ul>
+<li>CPU Utilization</li>
+<li>Network Utilization</li>
+<li>Disk Performance</li>
+<li>Disk Reads/Writes</li>
+</ul>
+</li>
+<li><strong>Custom metrics</strong>:
+<ul>
+<li>Memory utilization (memory usage)</li>
+<li>Disk swap utilization</li>
+<li>Disk space utilization</li>
+<li>Page file utilization</li>
+</ul>
+</li>
+<li>CloudWatch agent can be used for logging on premises servers too</li>
+</ul>
+<h1 id="dashboards">Dashboards</h1>
+<ul>
+<li>Setup custom dashboards for quick access to key metrics and alarms</li>
+<li><strong>Dashboards are global</strong> (allows to <strong>monitor services across accounts &amp; regions</strong>)</li>
+<li>Dashboards can be shared with people who don’t have an AWS account (public, email address, 3rd party SSO provider through Cognito)</li>
+</ul>
+<h1 id="logs">Logs</h1>
+<ul>
+<li>
+<p>Used to store application logs</p>
+</li>
+<li>
+<p>Log Groups represent an application sending logs to CW</p>
+</li>
+<li>
+<p>Log Streams represent instances within applications or log files or containers</p>
+</li>
+<li>
+<p>Logs Expiration: never expire (default), 30 days, etc.</p>
+</li>
+<li>
+<p>Logs can be sent to:</p>
+<ul>
+<li>S3 buckets (exports)</li>
+<li>Kinesis Data Streams</li>
+<li>Kinesis Data Firehose</li>
+<li>Lambda functions</li>
+<li>ElasticSearch</li>
+</ul>
+</li>
+<li>
+<p><strong>Metric Filters</strong> can be used to filter expressions and use the count to trigger CloudWatch alarms. They are not retro-active:</p>
+<ul>
+<li>find a specific IP in the logs</li>
+<li>count occurrences of “ERROR” in the logs</li>
+</ul>
+</li>
+<li>
+<p><strong>Cloud Watch Logs Insights</strong> can be used to query logs and add queries to CloudWatch Dashboards</p>
+</li>
+<li>
+<p>To stream logs in real-time, apply a <strong>Subscription Filter</strong> on logs</p>
+</li>
+<li>
+<p>Logs can take up to <strong>12 hours to become available for exporting to S3</strong> (not real-time). To store logs in real time in S3, use a subscription filter to stream logs to KDS and then to KDF which will then write the logs to S3.</p>
+</li>
+<li>
+<p>Logs from multiple accounts and regions can be aggregated using subscription filters</p>
+<p><img src="/_resources/c918c8a055b44a62bb7310ee2dc79c42.png" /></p>
+</li>
+</ul>
+<blockquote>
+<p>Metric Filters are a part of CloudWatch Logs (not CloudWatch Metrics)</p>
+</blockquote>
+<h1 id="alarms">Alarms</h1>
+<ul>
+<li>
+<p>Alarms are used to trigger notifications for CW metrics based on <strong>Metric Filters</strong></p>
+</li>
+<li>
+<p>Various options to trigger alarm (sampling, %, max, min, etc.)</p>
+</li>
+<li>
+<p><strong>An alarm monitors a single CW metric</strong></p>
+</li>
+<li>
+<p>Alarm States:</p>
+<ul>
+<li>OK</li>
+<li>INSUFFICIENT_DATA</li>
+<li>ALARM</li>
+</ul>
+</li>
+<li>
+<p>Configuration:</p>
+<ul>
+<li><strong>Period</strong>: length of time (seconds) to evaluate the metric to create a data point for the alarm (<strong>min 10 sec</strong> for high resolution custom metric)</li>
+<li><strong>Evaluation Period</strong>: number of the most recent periods (data points) to consider when determining the alarm state</li>
+<li><strong>Datapoints to Alarm</strong>: number of data points within the evaluation period that must be breached to cause the alarm to go into <code>ALARM</code> state</li>
+</ul>
+</li>
+<li>
+<p><strong>Targets</strong>:</p>
+<ul>
+<li>Stop, Terminate, Reboot, or Recover an EC2 Instance</li>
+<li>Trigger Auto Scaling Action (ASG)</li>
+<li>Send notification to SNS</li>
+</ul>
+</li>
+<li>
+<p><strong>Composite Alarms</strong> monitor multiple other alarms with AND/OR conditions to generate a new alarm. This is helpful to reduce alarm noise by creating complex composite alarms. Example: send an SNS notification when both CPU and IOPS are above 90% utilization.</p>
+<p><img src="/_resources/733d51e5474546a9b175c9fefbb0b2c6.png" /></p>
+</li>
+</ul>
+<h2 id="ec2-instance-recovery-on-alarm">EC2 Instance Recovery on Alarm</h2>
+<ul>
+<li>CloudWatch <strong>alarm</strong> to automatically recover an EC2 instance if it becomes <strong>impaired</strong></li>
+<li><strong>Terminated instances cannot be recovered</strong></li>
+<li>After the recovery, the following are retained
+<ul>
+<li>Placement Group</li>
+<li>Public IP</li>
+<li>Private IP</li>
+<li>Elastic IP</li>
+<li>Instance ID</li>
+<li>Instance metadata</li>
+</ul>
+</li>
+<li>After the recovery, <strong>RAM contents are lost</strong></li>
+</ul>
+<h1 id="events">Events</h1>
+<ul>
+<li>Cron to create events on a schedule</li>
+<li><strong>Uses default event bus (custom &amp; partner event buses are not supported)</strong></li>
+</ul>
+<h1 id="logs-encryption">Logs Encryption</h1>
+<ul>
+<li>CloudWatch logs can be encrypted at the <strong>log group level</strong> by associating a KMS key with it.</li>
+<li>Must be done using CloudWatch Logs API (cannot be done through the console)</li>
+<li>APIs
+<ul>
+<li><code>associate-kms-key</code> - associate a KMS key with an existing log group</li>
+<li><code>create-log-group</code> - create a log group and associate a KMS key with it</li>
+</ul>
+</li>
+</ul>
+<h1 id="synthetics-canary">Synthetics Canary</h1>
+<ul>
+<li>Monitoring tool that runs configurable scripts on production to reproduce what your customers do to find issues before them.</li>
+<li>Can invoke APIs and store the latency data</li>
+<li>Can check UI functionalities with screenshots (has a headless Google Chrome browser)</li>
+<li>Script must be written in <strong>NodeJS</strong> or <strong>Python</strong></li>
+<li><strong>Integrates with CloudWatch alarm</strong> (which can trigger a Lambda function to redirect users to another instance of the application running the previous version)</li>
+</ul>
+<p><img src="/_resources/5dfa857bf8734b57ad07995e0699f888.png" />{width=50%}</p>
+<ul>
+<li>Can run once or on a schedule</li>
+</ul>
+<h2 id="blueprints">Blueprints</h2>
+<ul>
+<li><strong>Heartbeat Monitor</strong> - load URL, store screenshot and an HTTP archive file</li>
+<li><strong>API Canary</strong> - test basic read and write functions of REST APls</li>
+<li><strong>Broken Link Checker</strong> - check all links inside the URL that you are testing</li>
+<li><strong>Visual Monitoring</strong> - compare a screenshot taken during a canary run with a baseline<br />
+screenshot</li>
+<li><strong>Canary Recorder</strong> - used with <strong>CloudWatch Synthetics Recorder</strong> (record your<br />
+actions on a website and automatically generates a script for that)</li>
+<li><strong>GUI Workflow Builder</strong> - verifies that actions can be taken on your webpage (e.g.<br />
+test a webpage with a login form)</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

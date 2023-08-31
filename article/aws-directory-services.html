@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>AWS Directory Services - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">AWS Directory Services</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692787105384"
+                  >2023-08-23 11:38</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1693489045138"
+                  >2023-08-31 14:37</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Auth &amp; Security</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><p><strong>strong text</strong><img src="/_resources/18791ab431d844d08066d0dd45c485ac.png" />{width=40%}</p>
+<h1 id="intro">Intro</h1>
+<ul>
+<li>Database of objects (User Accounts, Computers, Printers, File Shares, Security Groups) on a Windows server. Users can login on any system in the network.</li>
+<li>Objects are organized in <strong>trees</strong>. A group of trees is called <strong>forest</strong>.</li>
+<li>Used to extend the AD network by involving services like EC2 to be a part of the AD to share login credentials.</li>
+</ul>
+<h2 id="aws-managed-microsoft-ad">AWS Managed Microsoft AD</h2>
+<p><img src="/_resources/7d184175336c4c3084ed4bd097d009fb.png" />{width=50%}</p>
+<ul>
+<li>Login credentials are shared between on-premise and AWS managed AD</li>
+<li><strong>Manage users on both AD (on-premise and on AWS managed AD)</strong></li>
+<li>Supports MFA</li>
+<li>Establish trust connections with your on premise AD</li>
+<li>Supports <strong>directory-aware workloads on AWS</strong></li>
+</ul>
+<h2 id="ad-connector">AD Connector</h2>
+<p><img src="/_resources/2f822081cfbe4d0fa42ea891b1c94026.png" />{width=50%}</p>
+<ul>
+<li>AD connector will proxy all the requests to the on-premise AD</li>
+<li><strong>Users are managed on the on-premise AD only</strong></li>
+<li>Does not support directory-aware workloads on AWS</li>
+</ul>
+<h2 id="simple-ad">Simple AD</h2>
+<ul>
+<li>AD-compatible managed directory on AWS (<strong>cannot be joined with on-premise AD</strong>)</li>
+<li><strong>Users are managed on the AWS AD only</strong></li>
+<li>Use when you don’t have an on-premise AD</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

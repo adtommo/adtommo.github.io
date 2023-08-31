@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Serverless Application Model (SAM) - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Serverless Application Model (SAM)</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692718312741"
+                  >2023-08-22 16:31</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692801434569"
+                  >2023-08-23 15:37</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Infrastructure</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>IaC (YAML) for deploying serverless applications easily</li>
+<li>Abstraction over <a href="/article/cloudformation">CloudFormation</a> to allow developers to easily deploy their code</li>
+<li>Can deploy Lambda, API Gateway and DynamoDB locally for development using <strong>SAM CLI</strong> and <strong>AWS Toolkits</strong></li>
+<li>Uses <strong>CodeDeploy</strong> under the hood to update Lambda functions</li>
+</ul>
+<h1 id="workflow-commands">Workflow &amp; Commands</h1>
+<p><img src="/_resources/961857a675ab4c5f9664775d37587ce2.png" /></p>
+<ul>
+<li><code>sam build</code> - Fetch dependencies &amp; build the application. If the application code does not require building, skip this command and run <code>sam package</code> directly.</li>
+<li><code>aws cloudformation package</code> or <code>sam package</code> - Convert the SAM template to CloudFormation template, package the application code and the CloudFormation template and upload to an S3 bucket (must be created beforehand).</li>
+<li><code>aws cloudformation deploy</code> or <code>sam deploy</code> - Deploy the application package from S3 (creates and executes Change Set in CloudFormation)</li>
+<li><code>sam publish</code> - publish serverless app to SAR (only needs the CF template, the code is referenced from S3)</li>
+</ul>
+<h1 id="template">Template</h1>
+<ul>
+<li><code>Transform: "AWS::Serverless-2016-10-31'</code> - indicates that the YAML file is a SAM template (required)</li>
+<li><code>Resources</code> - resources to be created (required)
+<ul>
+<li><code>AWS::Serverless::Function</code> - define a Lambda function</li>
+<li><code>AWS::Serverless::Api</code> - define an API gateway</li>
+<li><code>AWS::Serverless::SimpleTable</code> - define a DynamoDB table</li>
+<li><code>AWS::Serverless::Application</code> - use an application from SAR</li>
+</ul>
+</li>
+</ul>
+<h2 id="policy-templates">Policy Templates</h2>
+<ul>
+<li>List of templates to grant permissions to Lambda functions easily</li>
+<li>Important policy templates:
+<ul>
+<li><code>S3ReadPolicy</code> - read-only permission to objects in an S3 bucket</li>
+<li><code>SQSPollerPolicy</code> - allow the function to poll an SQS queue</li>
+<li><code>DynamoDBCrudPolicy</code> - allow CRUD operations on a DynamoDB table</li>
+<li><code>DynamoDBReadPolicy</code> - allow read operations on a DynamoDB table</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/0fb7c45fd6c04b509790e8cc79e713c9.png" />{width=50%}</p>
+<h1 id="sam-codedeploy">SAM + <a href="/article/codedeploy">CodeDeploy</a></h1>
+<ul>
+<li>SAM uses CodeDeploy under the hood to update Lambda functions every time we update the code and deploy.</li>
+<li>Gradually shifts traffic to the new Lambda version using <strong>Aliases</strong></li>
+<li>Optional <strong>Pre &amp; Post Traffic Hooks</strong> (run on separate Lambda functions) to validate the deployment before the traffic shift starts and after it ends</li>
+<li>Optional <strong>Automated Rollback</strong> using CloudWatch Alarms</li>
+<li>Configure the deployment strategy in the <code>Properties</code> section of the Lambda function.<br />
+<img src="/_resources/a29d1b5c716b40948faa9f791b913d83.png" />{width=50%}</li>
+</ul>
+<p><img src="/_resources/70df7325a8d24409b5731ef90f30b097.png" />{width=50%}</p>
+<h1 id="local-deployment">Local Deployment</h1>
+<ul>
+<li>Can deploy Lambda, API Gateway and DynamoDB locally for development using <strong>SAM CLI</strong> and <strong>AWS Toolkits</strong></li>
+<li><code>sam local start-lambda</code> - start a lambda function locally (local endpoint)</li>
+<li><code>sam local invoke</code> - invoke the local lambda endpoint with a payload
+<ul>
+<li>If the function makes API calls to AWS, make sure to specify <code>--profile</code> option</li>
+</ul>
+</li>
+<li><code>sam local start-api</code> - starts a local HTTP server along with the lambda code as backend
+<ul>
+<li>Changes made to the function code are automatically reloaded</li>
+</ul>
+</li>
+<li><code>sam local generate-event</code> - generate local mock events for lambda functions
+<ul>
+<li>
+<p>Example: generate an S3 PutObject event and use it to invoke the lambda function</p>
+<p><code>sam local generate-event s3 put --bucket &lt;bucket&gt; --key &lt;key&gt; |   sam local invoke -e - &lt;function_id&gt;</code></p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="serverless-application-repository-sar">Serverless Application Repository (SAR)</h1>
+<ul>
+<li>Repository for serverless applications packaged using SAM</li>
+<li>Packaged applications can be shared
+<ul>
+<li>Publicly</li>
+<li>With specific AWS accounts</li>
+</ul>
+</li>
+<li>The packaged applications can be directly deployed (no duplicate work)</li>
+<li>Application can be customized using <strong>environment variables</strong></li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

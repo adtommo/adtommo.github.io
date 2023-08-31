@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>OpenSearch - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">OpenSearch</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692797768275"
+                  >2023-08-23 14:36</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692802631114"
+                  >2023-08-23 15:57</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Storage &amp; Querying</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Successor to ElasticSearch (renamed due to some licensing issues)</li>
+<li>Used in combination with a database to perform <strong>enhanced search operations on the database</strong> (can search on any field, even supports <strong>partial matches)</strong></li>
+<li><strong>Need to provision a cluster of instances</strong> (pay for provisioned instances) (<strong>not serverless</strong>)</li>
+<li>Comes with <strong>OpenSearch Dashboard</strong> for visualization</li>
+<li><strong>Does not support SQL</strong> (has its own query language)</li>
+<li>Supports <strong>Multi-AZ</strong></li>
+<li>Used in Big Data</li>
+<li>Security through IAM, Cognito, KMS and TLS</li>
+</ul>
+<h1 id="patterns">Patterns</h1>
+<h2 id="opensearch-on-dynamodb">OpenSearch on DynamoDB</h2>
+<p>OpenSearch provides features like search on any column or partial matches and returns the item IDs that will be used to fetch items from the main table.</p>
+<p><img src="/_resources/f45b2da66d294f79af17f5dbdd12619a.png" />{width=90%}</p>
+<h2 id="opensearch-on-cloudwatch-logs">OpenSearch on CloudWatch Logs</h2>
+<p>Subscription filter is used to get logs in real time which can be pushed in real time using a Lambda function or near real time using KDF. This provides advanced search capabilities on the logs.</p>
+<p><img src="/_resources/1efded9cb52b4f04875dce6802605e66.png" />{width=90%}</p>
+<h2 id="opensearch-on-kinesis">OpenSearch on Kinesis</h2>
+<p><img src="/_resources/7d473f798d5c44478e7d4686916cfe99.png" /></p>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

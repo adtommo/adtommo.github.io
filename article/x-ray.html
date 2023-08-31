@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>X-Ray - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">X-Ray</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692798256253"
+                  >2023-08-23 14:44</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692802470006"
+                  >2023-08-23 15:54</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Observability</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<p><img src="/_resources/6651283f945b40bc8225db96b4716a55.png" /></p>
+<ul>
+<li><strong>Provides tracing of requests as they travel through different AWS services</strong> to
+<ul>
+<li>identify performance bottlenecks</li>
+<li>pinpoint errors</li>
+<li>understand dependencies in micro-services</li>
+</ul>
+</li>
+<li><strong>Useful for micro-services (distributed) applications</strong> where debugging is hard</li>
+<li>Ability to trace every request or a sample of requests</li>
+<li>Compatible with
+<ul>
+<li>Lambda</li>
+<li>Elastic Beanstalk</li>
+<li>ECS</li>
+<li>ELB</li>
+<li>API Gateway</li>
+<li>EC2 instances or on-premise servers</li>
+</ul>
+</li>
+<li>Security
+<ul>
+<li>IAM for authorization</li>
+<li>KMS for encryption at rest</li>
+</ul>
+</li>
+<li>Ability to <strong>send traces across accounts</strong> (allows to have a central account for application tracing)</li>
+</ul>
+<h1 id="enabling-x-ray">Enabling X-Ray</h1>
+<ul>
+<li>Use the AWS <strong>X-Ray SDK</strong> in your code (little code modification)</li>
+<li>Install <strong>X-Ray daemon</strong> if your application is running on EC2 or on-premise server. For other services, enable X-Ray integration (X-Ray daemon is already running).</li>
+<li>Configure IAM permissions for the X-Ray daemon or AWS service to write data to X-Ray.</li>
+</ul>
+<h1 id="how-traces-are-sent">How traces are sent</h1>
+<ul>
+<li>X-Ray SDK captures calls to AWS services as well as other HTTP / HTTPS / Database / Queue calls.</li>
+<li>X-Ray SDK sends traces to X-Ray daemon through <strong>UDP</strong> on <strong>port 2000</strong> (configure port mappings and network settings in the task definition file to allow the application to communicate with the X-Ray daemon container)</li>
+<li>X-Ray daemon batches the traces and sends them to X-Ray service every second.</li>
+</ul>
+<p><img src="/_resources/bc3a0621b756452f95e6e9faf182db5f.png" />{width=30%}</p>
+<h1 id="x-ray-instrumentation-in-code">X-Ray instrumentation in code</h1>
+<ul>
+<li>Only configuration change is required in the code</li>
+<li>Can modify the application code to customize and annotate the traces sent by X-Ray SDK.</li>
+</ul>
+<p><img src="/_resources/d396b348bb5c440fba4f6e2c55d721c0.png" />{width=50%}</p>
+<h1 id="terminologies">Terminologies</h1>
+<ul>
+<li><strong>Segments</strong>: data sent by each application / service</li>
+<li><strong>Subsegments</strong>: provide more granular timing information and details about downstream calls (to AWS services, HTTP API or an SQL DB) that your application makes to fulfill the original request.</li>
+<li><strong>Trace</strong>: segments collected together to form an end-to-end trace</li>
+<li><strong>Annotations</strong>: indexed key-value pairs attached to traces for search capability and filtering traces using <strong>filter expressions</strong></li>
+<li><strong>Metadata</strong>: non-indexed key-value pairs attached to traces</li>
+</ul>
+<h1 id="sampling">Sampling</h1>
+<ul>
+<li>
+<p>Control the amount of data (traces) sent to X-Ray (to reduce cost)</p>
+</li>
+<li>
+<p>Sampling rules can be modified in the X-Ray console without changing the application code or restarting the application. The sampling rules are automatically applied to the X-Ray daemons.</p>
+</li>
+<li>
+<p>By <strong>default</strong>, the X-Ray SDK records the <strong>first request each second</strong> (<strong>reservoir</strong>), and <strong>five percent of any additional requests</strong> (<strong>rate</strong>).</p>
+</li>
+<li>
+<p>Custom sampling rules</p>
+<p>Smaller priority number ⇒ higher priority</p>
+<p><img src="/_resources/09511e58ce5c48ba852bf583bdc4d17f.png" /></p>
+</li>
+</ul>
+<h1 id="aws-managed-iam-policies">AWS managed IAM Policies</h1>
+<p><img src="/_resources/12aaf8f9a8e64447b052d398277a7ee6.png" />{width=50%}</p>
+<p><code>AWSXrayWriteOnlyAccess</code> - policy to allow X-Ray daemon to send trace segments and telemetry data and get sampling info.</p>
+<p><img src="/_resources/f4e9d708cb804995b723acee83acbc70.png" />{width=50%}</p>
+<p><code>AWSXrayReadOnlyAccess</code> - policy to get certain information from X-Ray</p>
+<h1 id="x-ray-with-daemon">X-Ray with Daemon</h1>
+<ul>
+<li>Enable X-Ray daemon by including the <code>xray-daemon.config</code> configuration file in the <code>.ebextensions</code> directory of your source code.</li>
+<li>Instance profile should have the required IAM permissions</li>
+<li>Application code should be instrumented with X-Ray SDK</li>
+<li><strong>X-Ray daemon must be manually setup in Multi-Container Docker</strong></li>
+</ul>
+<h1 id="x-ray-with-amazon-ecs">X-Ray with <a href="/article/amazon-ecs">Amazon ECS</a></h1>
+<ul>
+<li>
+<p>In ECS, the <strong>X-Ray daemon must be running as a container</strong>. For EC2 launch types we can either have 1 X-Ray daemon container per instance or per application (side car). In fargate launch type, since we have no control over the container placement, we need to use sidecar pattern.</p>
+<p><img src="/_resources/836d76109ced4d9aa46aa6354c9015c3.png" /></p>
+</li>
+<li>
+<p>Setting up sidecar X-Ray daemon for EC2 launch type requires port mapping and linking the application and side car containers.</p>
+<p><img src="/_resources/7931c9917c98464099240dee4eabfba8.png" /></p>
+</li>
+</ul>
+<h1 id="misc">Misc</h1>
+<ul>
+<li>
+<p>A subset of segment fields are indexed by X-Ray for use with filter expressions. Example, if you set the <code>user</code> field on a segment to a unique identifier, you can search for segments associated with specific users in the X-Ray console or by using the <code>GetTraceSummaries</code> API.</p>
+</li>
+<li>
+<p>Segment metadata is not is not indexed for search</p>
+</li>
+<li>
+<p>Trace segments can be uploaded using <code>PutTraceSegments</code> API</p>
+</li>
+<li>
+<p>X-Ray daemon uses <code>PutTelemetryRecords</code> API to send telemetry data</p>
+</li>
+<li>
+<p><strong>Preferred over CloudWatch to debug serverless applications</strong></p>
+</li>
+<li>
+<p>Lambda functions use environment variables to facilitate communication with X-Ray</p>
+<ul>
+<li><code>AWS_XRAY_DAEMON_ADDRESS</code></li>
+<li><code>_X_AMZN_TRACE_ID</code></li>
+<li><code>AWS_XRAY_CONTEXT_MISSING</code></li>
+</ul>
+</li>
+<li>
+<p>Use the <code>GetTraceSummaries</code> API to get the list of trace IDs and then retrieve the list of traces using <code>BatchGetTraces</code> API</p>
+</li>
+<li>
+<p>Prefer <strong>AWS Distro for OpenTelemetry</strong> over X-Ray if you want to send traces to multiple different tracing backends without having to re-instrument your code.</p>
+</li>
+<li>
+<p>We can define arbitrary subsegments to instrument specific functions or lines of code in an application.</p>
+<p><img src="/_resources/78a3a9cf3cb842b6ae4e0dc30f2d317f.png" /></p>
+</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

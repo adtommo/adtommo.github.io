@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>ELB - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">ELB</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692713730180"
+                  >2023-08-22 15:15</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692802258559"
+                  >2023-08-23 15:50</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Networking</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Regional Service</li>
+<li>Supports Multi AZ</li>
+<li>Spread load across multiple EC2 instances</li>
+<li>Separate public traffic from private traffic</li>
+<li>Health checks allow ELB to know which instances are working properly (done on a port and a route, <code>/health</code> is common)</li>
+<li><strong>Does not support weighted routing</strong></li>
+<li>If no targets are associated with the target groups ⇒ <strong>503 Service Unavailable</strong></li>
+<li>Targets are unreachable (possibly due to NACL or SG rules) ⇒ <strong>504 Timeout Error</strong></li>
+<li>Using ALB &amp; NLB, instances in peered VPCs can be used as targets using IP addresses.</li>
+</ul>
+<h1 id="types">Types</h1>
+<h2 id="classic-load-balancer-clb-deprecated">Classic Load Balancer (CLB) - deprecated</h2>
+<ul>
+<li><strong>Load Balancing to a single application</strong></li>
+<li>Supports HTTP, HTTPS (layer 7) &amp; TCP (layer 4)</li>
+<li>Health checks are HTTP or TCP based</li>
+<li>Provides a fixed hostname (xxx.region.elb.amazonaws.com)</li>
+</ul>
+<h2 id="application-load-balancer-alb">Application Load Balancer (ALB)</h2>
+<ul>
+<li><strong>Load balancing to multiple applications</strong> (target groups) based on the request parameters</li>
+<li>Operates at Layer 7 (HTTP, HTTPS and WebSocket)</li>
+<li>Provides a fixed hostname (xxx.region.elb.amazonaws.com)</li>
+<li>ALB terminates the upstream connection and creates a new downstream connection to the targets</li>
+<li><strong>Security Groups can be attached to ALBs</strong> to filters requests</li>
+<li>Great for micro services &amp; container-based applications (Docker &amp; ECS)</li>
+<li>Client info is passed in the request headers
+<ul>
+<li>Client IP ⇒ <code>X-Forwarded-For</code></li>
+<li>Client Port ⇒ <code>X-Forwarded-Port</code></li>
+<li>Protocol ⇒ <code>X-Forwarded-Proto</code></li>
+</ul>
+</li>
+<li>Target Groups
+<ul>
+<li>Health checks are done at the target group level</li>
+<li>Target Groups could be
+<ul>
+<li>EC2 instances - HTTP</li>
+<li>ECS tasks - HTTP</li>
+<li>Lambda functions - HTTP request is translated into a JSON event</li>
+<li>Private IP Addresses</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Listener Rules</strong> can be configured to route traffic to different target groups based on:
+<ul>
+<li>Path (<a title="http://example.com/users" href="http://example.com/users">example.com/users</a> &amp; <a title="http://example.com/posts" href="http://example.com/posts">example.com/posts</a>)</li>
+<li>Hostname (<a title="http://one.example.com/" href="http://one.example.com/">one.example.com</a> &amp; <a title="http://other.example.com/" href="http://other.example.com/">other.example.com</a>)</li>
+<li>Query String (<a title="http://example.com/users?id=123&amp;order=false" href="http://example.com/users?id=123&amp;order=false">example.com/users?id=123&amp;order=false</a>)</li>
+<li>Request Headers</li>
+<li>Source IP address</li>
+</ul>
+</li>
+<li>Important Points
+<ul>
+<li>When the target type is IP, you can specify private IP addresses only.</li>
+<li>If you specify targets using an instance ID, traffic is routed to instances using the primary private IP address specified in the primary network interface for the instance.</li>
+<li>If you specify targets using IP addresses, you can route traffic to an instance using any private IP address from one or more network interfaces. This enables multiple applications on an instance to use the same port.</li>
+</ul>
+</li>
+</ul>
+<h2 id="network-load-balancer-nlb">Network Load Balancer (NLB)</h2>
+<ul>
+<li>Operates at Layer 4 (TCP, UDP)</li>
+<li>Can handle millions of request per seconds (extreme performance)</li>
+<li><strong>Lower latency</strong> ~ 100 ms (vs 400 ms for ALB)</li>
+<li><strong>1 static public IP per AZ</strong> (vs a static hostname for CLB &amp; ALB)</li>
+<li><strong>Elastic IP can be assigned to NLB</strong> (helpful for whitelisting specific IP)</li>
+<li>Maintains the same connection (TCP or UDP) from client all the way to the target application</li>
+<li><strong>No security groups can be attached to NLBs.</strong> Since they operate on layer 4, they cannot see the data available at layer 7. They just forward the incoming traffic to the right target group as if those requests were directly coming from client. So, the <strong>target instances must allow TCP traffic on port 80 from anywhere</strong>.</li>
+<li>Within a target group, NLB can send traffic to
+<ul>
+<li><strong>EC2 instances</strong>
+<ul>
+<li>If you specify targets using an instance ID, traffic is routed to instances using the <strong>primary private IP address</strong></li>
+</ul>
+</li>
+<li><strong>IP addresses</strong>
+<ul>
+<li>Used when you want to balance load for a physical server having a static IP.</li>
+</ul>
+</li>
+<li><strong>Application Load Balancer (ALB)</strong>
+<ul>
+<li>Used when you want a static IP provided by an NLB but also want to use the features provided by ALB at the application layer.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="gateway-load-balancer-gwlb">Gateway Load Balancer (GWLB)</h2>
+<ul>
+<li>Operates at layer 3 (Network layer) - IP Protocol</li>
+<li>Used to route requests to a fleet of 3rd party virtual appliances like Firewalls, Intrusion Detection and Prevention Systems (IDPS), etc.</li>
+<li>Performs two functions:
+<ul>
+<li><strong>Transparent Network Gateway</strong> (single entry/exit for all traffic)</li>
+<li>Load Balancer (distributes traffic to virtual appliances)</li>
+</ul>
+</li>
+<li>Uses GENEVE protocol</li>
+<li>Target groups for GWLB could be
+<ul>
+<li>EC2 instances</li>
+<li>IP addresses</li>
+</ul>
+</li>
+</ul>
+<h1 id="sticky-sessions-session-affinity">Sticky Sessions (Session Affinity)</h1>
+<ul>
+<li>Requests coming from a client is always redirected to the same instance based on a cookie. After the cookie expires, the requests coming from the same user might be redirected to another instance.</li>
+<li><strong>Only supported by CLB &amp; ALB</strong> because the cookie can be seen at layer 7</li>
+<li>Used to ensure the user doesn’t lose his session data, like login or cart info, while navigating between web pages.</li>
+<li><strong>Stickiness may cause load imbalance</strong></li>
+<li>Cookies could be
+<ul>
+<li><strong>Application-based</strong> (TTL defined by the application)</li>
+<li><strong>Load Balancer generated</strong> (TTL defined by the load balancer)</li>
+</ul>
+</li>
+<li>ELB reserved cookie names (should not be used)
+<ul>
+<li><code>AWSALB</code></li>
+<li><code>AWSALBAPP</code></li>
+<li><code>AWSALBTG</code></li>
+</ul>
+</li>
+</ul>
+<h1 id="cross-zone-load-balancing">Cross-zone Load Balancing</h1>
+<p><img src="/_resources/d959594d7c2c4ef1a6c597295efd8efa.png" /></p>
+<ul>
+<li>Allows ELBs in different AZ containing unbalanced number of instances to distribute the traffic evenly across all instances in all the AZ registered under a load balancer.</li>
+<li>Supported Load Balancers
+<ul>
+<li>Classic Load Balancer
+<ul>
+<li>Disabled by default</li>
+<li>No charges for inter AZ data</li>
+</ul>
+</li>
+<li>Application Load Balancer
+<ul>
+<li>Always on (can’t be disabled)</li>
+<li>No charges for inter AZ data</li>
+</ul>
+</li>
+<li>Network Load Balancer
+<ul>
+<li>Disabled by default</li>
+<li>Charges for inter AZ data</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="in-flight-encryption-ssl-certificates">In-flight Encryption (SSL Certificates)</h1>
+<p><img src="/_resources/1b527c106e6446709cf5819c11a0bcd5.png" />{width=80%}</p>
+<ul>
+<li>
+<p>Use an <strong>NLB with a TCP listener</strong> &amp; terminate SSL on EC2 instances</p>
+</li>
+<li>
+<p>Use an <strong>ALB with an HTTPS listener</strong>, install SSL certificates on the ALB &amp; terminate SSL on the ALB</p>
+</li>
+<li>
+<p>Communication between ALB &amp; EC2 instances can happen over HTTP inside the VPC</p>
+</li>
+<li>
+<p><strong>Server Name Indication (SNI)</strong></p>
+<ul>
+<li>SNI allows us to load multiple SSL certificates on one Load Balancer to serve multiple websites securely</li>
+<li><strong>Only works for ALB &amp; NLB</strong> (CLB only supports one SSL certificate)</li>
+<li>Newer protocol, not every client supports it yet</li>
+<li><strong>Supported in CloudFront</strong> also</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/feb96764f5a04a30935305bbc3d107cc.png" />{width=60%}</p>
+<h1 id="connection-draining-de-registration-delay">Connection Draining (De-registration Delay)</h1>
+<ul>
+<li>When an instance is to be de-registered from the ELB, the in-flight requests being served by that instance are given some pre-defined time to complete before the ELB de-registers it.</li>
+<li>ELB stops sending new requests to the EC2 instance which is de-registering</li>
+<li>Set manually (0 to 3600 seconds) (<strong>default: 300 seconds</strong>)</li>
+</ul>
+<blockquote>
+<p>For instances behind an ELB and using ASG, increase the de-registration delay to ensure that the in-flight requests are completed before the ELB deregisters an instance which is to be terminated by the ASG.</p>
+</blockquote>
+<h1 id="access-logs">Access Logs</h1>
+<ul>
+<li>Captures detailed information about requests sent to the load balancer</li>
+<li>Used to analyze traffic patterns and troubleshoot issues</li>
+<li>Disabled by default</li>
+</ul>
+<h1 id="security-groups-for-a-public-facing-elb">Security Groups for a public facing ELB</h1>
+<p><img src="/_resources/3d79a220fb044362ac015b385d83e1b8.png" /></p>
+<p>ELB will be publicly available on the internet, so it’s security group should allow HTTP and HTTPS traffic from anywhere. EC2 should only allow traffic from the ELB, so the its security group should allow HTTP requests from ELB’s security group.</p>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

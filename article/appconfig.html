@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>AppConfig - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">AppConfig</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692783307454"
+                  >2023-08-23 10:35</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692801294463"
+                  >2023-08-23 15:34</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Infrastructure</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><ul>
+<li>Used to <strong>separate configuration from the application</strong></li>
+<li>Deploy dynamic configuration changes without redeploying application</li>
+<li>Used for apps running on EC2, Lambda, ECS, EKS, etc.</li>
+<li>Use cases: <strong>feature flags</strong> to enable or disable a feature, <strong>dynamic IP blocklist</strong>, etc.</li>
+<li>Gradually deploy the configuration changes and rollback if issues occur</li>
+<li><strong>Validate configuration</strong> changes before deployment using:
+<ul>
+<li><strong>JSON Schema</strong> (syntactic check)</li>
+<li><strong>Lambda Function</strong> - run code to perform validation (semantic check)</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/f1a18bf0ddd841e18063990178438ba0.png" />{width=60%}</p>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

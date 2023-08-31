@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>SNS - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">SNS</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692788600533"
+                  >2023-08-23 12:03</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692801912465"
+                  >2023-08-23 15:45</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Messaging</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Used to broadcast messages</li>
+<li>Pub-Sub model (publisher publishes messages to a topic, subscribers listen to the topic)</li>
+<li>Instant message delivery (does not queue messages)</li>
+</ul>
+<h1 id="encryption">Encryption</h1>
+<ul>
+<li>In-flight encryption by default using HTTPS API</li>
+<li>At-rest encryption using KMS keys (optional)</li>
+<li>Client-side encryption</li>
+</ul>
+<h1 id="access-management">Access Management</h1>
+<ul>
+<li><strong>lAM policies</strong> to regulate access to the SNS API</li>
+<li><strong>SNS Access Policies</strong> (resource based policy)
+<ul>
+<li>Used for cross-account access to SNS topics</li>
+<li>Used for allowing other AWS services to publish to an SNS topic</li>
+</ul>
+</li>
+</ul>
+<h1 id="standard-topics">Standard Topics</h1>
+<ul>
+<li>Highest throughput</li>
+<li>At least once message delivery</li>
+<li>Best effort ordering</li>
+<li>Subscribers can be:
+<ul>
+<li>SQS queues</li>
+<li>HTTP / HTTPS endpoints</li>
+<li>Lambda functions</li>
+<li>Emails (using SNS)</li>
+<li>SMS &amp; Mobile Notifications</li>
+<li><strong>KDF</strong> to send the data into S3 or Redshift</li>
+</ul>
+</li>
+</ul>
+<h1 id="fifo-topics">FIFO Topics</h1>
+<ul>
+<li>Guaranteed ordering of messages in that topic</li>
+<li>Publishing messages to a FIFO topic requires:
+<ul>
+<li><strong>Group ID</strong>: messages will be ordered and grouped for each group ID</li>
+<li><strong>Message deduplication ID</strong>: for deduplication of messages</li>
+</ul>
+</li>
+<li><strong>Can only have SQS FIFO queues as subscribers</strong></li>
+<li><strong>Limited throughput (same as SQS FIFO)</strong> because only SQS FIFO queues can read from FIFO topics</li>
+<li><strong>The topic name must end with</strong> <code>.fifo</code></li>
+</ul>
+<h1 id="sns-sqs-fanout-pattern">SNS + SQS Fanout Pattern</h1>
+<p><img src="/_resources/d3e78c56e2c748e4a41e0f4b0ab19560.png" /></p>
+<ul>
+<li>Fully decoupled, no data loss</li>
+<li>SQS allows for: data persistence, delayed processing and retries of work</li>
+<li>Make sure your SQS queue access policy allows for SNS to write</li>
+</ul>
+<h1 id="message-filtering">Message Filtering</h1>
+<ul>
+<li>JSON policy used to filter messages sent to SNS topic’s subscriptions</li>
+<li>Each subscriber will have its own filter policy (if a subscriber doesn’t have a filter policy, it receives every message)</li>
+<li>Ex: filter messages sent to each queue by the order status</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

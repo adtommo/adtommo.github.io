@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>CodeArtifact - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">CodeArtifact</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692799203779"
+                  >2023-08-23 15:00</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692800633450"
+                  >2023-08-23 15:23</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">CICD</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>AWS managed <strong>artifact management service</strong> or storing and retrieving software dependencies that our application requires to run.</li>
+<li>Works with dependency management tools like Maven, Gradle, npm, yarn, twine, pip and NuGet.</li>
+<li>Developers and CodeBuild can retrieve dependencies straight from CodeArtifact.</li>
+<li><strong>Artifacts (dependencies) live inside the VPC</strong></li>
+</ul>
+<h1 id="workflow">Workflow</h1>
+<p><img src="/_resources/535c159c6b104981a1738ded2aabe124.png" /></p>
+<ul>
+<li>CodeArtifact proxies requests to public artifact repositories and caches publicly available artifacts. So, even if the artifact is deleted from the public repository, it will still be available in CodeArtifact.</li>
+<li>Custom artifacts can also be hosted on CodeArtifact</li>
+<li>Developers and CodeBuild fetch all the artifacts from a single source</li>
+</ul>
+<h1 id="upstream-repositories">Upstream Repositories</h1>
+<p><img src="/_resources/e9241003782b4a1d8799b5d5c91cf4b1.png" />{width=40%}</p>
+<p><img src="/_resources/f6d77c62cd0741db9f8d9a2fc6866b29.png" />{width=40%}</p>
+<ul>
+<li>A CodeArtifact repository can have other CodeArtifact repositories as Upstream Repositories. This allows the developer to access the packages contained in multiple repositories from a single repository endpoint.</li>
+<li>A repository can have <strong>max 10 upstream repositories</strong></li>
+<li>A repository can only have one external connection with a public repository. Artifacts fetched from public repositories will be cached (stored in the domain and have reference to the artifact) at the CodeArtifact repository connected to it.</li>
+</ul>
+<h1 id="retention">Retention</h1>
+<ul>
+<li>If a requested package (artifact) is found in an upstream repo, a reference to it is stored in the downstream repo closest to the developer (who requested the package).</li>
+<li>If the package is fetched from a public repo, a reference to it will be stored in the repo connected to the external repo.</li>
+<li>Intermediate repos that were involved in resolving the package do not store reference to the package.</li>
+<li>The package cached in the downstream repo is not affected by changes to the package in the upstream repository.</li>
+</ul>
+<p><img src="/_resources/c94a3c5011414bdd9afe0bff69cdf62e.png" />{width=40%}</p>
+<h1 id="domains">Domains</h1>
+<ul>
+<li>Single shared storage for all the repositories across multiple accounts.</li>
+<li><strong>De-duplicated storage</strong>: Artifacts are stored only once in the shared storage of the domain and repositories only store references to these artifact. The artifacts are not duplicated across repositories.</li>
+<li><strong>Fast copying</strong>: when a repository pulls an artifact from an upstream repository, it only copies the metadata (containing the reference to the artifact stored in the domain).</li>
+<li><strong>Easy sharing across repositories and teams</strong>: all the assets and the metadata in a domain are encrypted with a single KMS key</li>
+</ul>
+<p><img src="/_resources/337e08da229f4d3780e3679fa59d6017.png" />{width=40%}</p>
+<ul>
+<li><strong>Domain Resource-based Policy</strong>: domain administrator can apply policy across the domain such as:
+<ul>
+<li>Restricting which accounts have access to repositories in the domain</li>
+<li>Who can configure connections to public repositories to use as sources of packages</li>
+</ul>
+</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

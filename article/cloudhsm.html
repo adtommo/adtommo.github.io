@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>CloudHSM - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">CloudHSM</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692787621472"
+                  >2023-08-23 11:47</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692800610477"
+                  >2023-08-23 15:23</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Auth &amp; Security</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><ul>
+<li>
+<p>AWS provisions <strong>dedicated encryption hardware</strong> (Hardware Security Module)</p>
+</li>
+<li>
+<p>Use when you want to manage encryption keys completely</p>
+</li>
+<li>
+<p>HSM device is stored in AWS (tamper resistant, FIPS 140-2 Level 3 compliance)</p>
+</li>
+<li>
+<p><strong>Supports both symmetric and asymmetric encryption</strong></p>
+</li>
+<li>
+<p>Good option to use with <strong>SSE-C</strong> encryption</p>
+</li>
+<li>
+<p>CloudHSM clusters are spread across <strong>Multi AZ (high availability)</strong></p>
+</li>
+<li>
+<p><strong>Redshift supports CloudHSM</strong> for database encryption and key management</p>
+</li>
+<li>
+<p>IAM permissions are required to perform CRUD operations on HSM cluster</p>
+</li>
+<li>
+<p><strong>CloudHSM Software</strong> is used to manage the keys and users (in KMS, everything is managed using IAM)</p>
+</li>
+<li>
+<p>Can be integrated with KMS so that KMS uses CloudHSM internally</p>
+</li>
+</ul>
+<p><img src="/_resources/cdcc28491f5c4515b7f7ff4b6373c55e.png" />{width=50%}</p>
+<h1 id="cloudhsm-vs-kms">CloudHSM vs KMS</h1>
+<p><img src="/_resources/44b8d2e14a39416499231d09240f12e1.png" /></p>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

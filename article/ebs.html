@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>EBS - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">EBS</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692789533385"
+                  >2023-08-23 12:18</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692789561359"
+                  >2023-08-23 12:19</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Storage &amp; Querying</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><ul>
+<li>Volume <strong>Network Drive</strong> (provides low latency access to data)</li>
+<li>Can only be mounted to 1 instance at a time (except EBS multi-attach)</li>
+<li><strong>Bound to an AZ</strong></li>
+<li>Must provision capacity in advance (size in GB &amp; throughput in IOPS)</li>
+<li>By default, upon instance termination, the root EBS volume is deleted and any other attached EBS volume is not deleted (can be over-ridden using <code>DeleteOnTermination</code> attribute)</li>
+<li>To replicate an EBS volume across AZ or region, need to copy its snapshot</li>
+<li>EBS Multi-attach allows the same EBS volume to attach to multiple EC2 instances <strong>in the same AZ</strong></li>
+<li><strong>New EBS volumes are raw block storage and do not contain any partition or file system</strong>. You need to login to the instance and <strong>format the EBS volume with a file system</strong> for it to be usable.</li>
+</ul>
+<blockquote>
+<p><code>DeleteOnTermination</code> attribute can be updated for the root EBS volume for a running instance only from the CLI. It can be done from the console only if the instance is stopped.</p>
+</blockquote>
+<h1 id="volume-types">Volume Types</h1>
+<h2 id="general-purpose-ssd">General Purpose SSD</h2>
+<ul>
+<li>Good for system boot volumes, virtual desktops</li>
+<li>Storage: 1 GB - 16 TB</li>
+<li><strong>Max IOPS: 16,000</strong></li>
+<li><strong>gp3</strong>
+<ul>
+<li><strong>3,000 lOPS baseline</strong> (max 16,000 - independent of size)</li>
+<li>125 MiB/s throughput (max 1000MiB/s - independent of size)</li>
+</ul>
+</li>
+<li><strong>gp2</strong>
+<ul>
+<li><strong>Burst IOPS up to 3,000</strong></li>
+<li><strong>3 IOPS per GB</strong></li>
+<li><strong>Max IOPS: 16,000</strong> (at 5,334 GB)</li>
+</ul>
+</li>
+</ul>
+<h2 id="provisioned-iops-ssd">Provisioned IOPS SSD</h2>
+<ul>
+<li>Optimized for <strong>Transaction-intensive Applications</strong> with high frequency of <strong>small &amp; random IO operations</strong>. They are sensitive to increased I/O latency.</li>
+<li>Maintain high IOPS while keeping I/O latency down by maintaining a <strong>low queue length</strong> and a high number of IOPS available to the volume.</li>
+<li><strong>Supports EBS Multi-attach</strong> (not supported by other types)</li>
+<li><strong>io1</strong> or <strong>io2</strong>
+<ul>
+<li>Storage: <strong>4 GB - 16 TB</strong></li>
+<li>Max IOPS: <strong>64,000 for Nitro EC2 instances</strong> &amp; <strong>32,000 for non-Nitro</strong></li>
+<li><strong>50 lOPS per GB</strong> (64,000 IOPS at 1,280 GB)</li>
+<li>io2 have more durability and more IOPS per GB (at the same price as io1)</li>
+</ul>
+</li>
+<li><strong>io2 Block Express</strong>
+<ul>
+<li>Storage: 4 GB - <strong>64 TB</strong></li>
+<li>Sub-millisecond latency</li>
+<li><strong>Max IOPS: 256,000</strong></li>
+<li>1000 lOPS per GB</li>
+</ul>
+</li>
+</ul>
+<h2 id="hard-disk-drives-hdd">Hard Disk Drives (HDD)</h2>
+<ul>
+<li>Optimized for <strong>Throughput-intensive Applications</strong> that require <strong>large &amp; sequential IO operations</strong> and are less sensitive to increased I/O latency (big data, data warehousing, log processing)</li>
+<li>Maintain high throughput to HDD-backed volumes by maintaining a <strong>high queue length</strong> when performing large, sequential I/O</li>
+<li><strong>Cannot be used as boot volume</strong> for an EC2 instance</li>
+<li>Storage: 125 MB - 16 TB</li>
+<li><strong>Throughput Optimized HDD (st1)</strong>
+<ul>
+<li>Optimized for large sequential reads and writes (Big Data, Data Warehouses, Log Processing)</li>
+<li><strong>Max throughput: 500 MB/s</strong></li>
+<li><strong>Max IOPS: 500</strong></li>
+</ul>
+</li>
+<li><strong>Cold HDD (sc1)</strong>
+<ul>
+<li>For infrequently accessed data</li>
+<li>Cheapest</li>
+<li><strong>Max throughput: 250 MB/s</strong></li>
+<li><strong>Max IOPS: 250</strong></li>
+</ul>
+</li>
+</ul>
+<h1 id="encryption">Encryption</h1>
+<ul>
+<li>Optional</li>
+<li>For Encrypted EBS volumes
+<ul>
+<li>Data at rest is encrypted</li>
+<li><strong>Data in-flight between the instance and the volume is encrypted</strong></li>
+<li>All snapshots are encrypted</li>
+<li>All volumes created from the snapshot are encrypted</li>
+</ul>
+</li>
+<li>Encrypt an un-encrypted EBS volume
+<ul>
+<li>Create an EBS snapshot of the volume</li>
+<li>Copy the EBS snapshot and encrypt the new copy</li>
+<li>Create a new EBS volume from the encrypted snapshot (the volume will be automatically encrypted)</li>
+</ul>
+</li>
+</ul>
+<h1 id="snapshots">Snapshots</h1>
+<ul>
+<li><strong>Data Lifecycle Manager (DLM)</strong> can be used to automate the creation, retention, and deletion of snapshots of EBS volumes</li>
+<li><strong>Snapshots are incremental</strong></li>
+<li>Only the most recent snapshot is required to restore the volume</li>
+</ul>
+<h1 id="raid">RAID</h1>
+<ul>
+<li><strong>RAID 0</strong>
+<ul>
+<li><strong>Improve performance</strong> of a storage volume by distributing reads &amp; writes in a stripe across attached volumes</li>
+<li>If you add a storage volume, you get the straight addition of throughput and IOPS</li>
+<li>For high performance applications</li>
+</ul>
+</li>
+<li><strong>RAID 1</strong>
+<ul>
+<li><strong>Improve data availability</strong> by mirroring data in multiple volumes</li>
+<li>For critical applications</li>
+</ul>
+</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

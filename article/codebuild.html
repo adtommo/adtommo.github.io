@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>CodeBuild - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">CodeBuild</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692798900381"
+                  >2023-08-23 14:55</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692799858497"
+                  >2023-08-23 15:10</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">CICD</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li><strong>AWS managed CI server for building and testing code</strong></li>
+<li>Build instructions are provided in <code>**buildspec.yaml**</code> <strong>present in the root of the repo</strong></li>
+<li>Build logs can be stored in S3 or CloudWatch</li>
+<li>CW Metrics can be used to monitor build statistics and CW Events to detect failed builds</li>
+<li>Build projects can be defined in CodeBuild or CodePipeline</li>
+<li>Supported environment
+<ul>
+<li>Java</li>
+<li>Ruby</li>
+<li>Python</li>
+<li>Go</li>
+<li>Node.js</li>
+<li>Android</li>
+<li>.NET Core</li>
+<li>PHP</li>
+<li>Docker - to extend further</li>
+</ul>
+</li>
+<li><strong>CodeBuild can be run locally</strong> (requires Docker) using <strong>CodeBuild Agent</strong> for troubleshooting purposes.</li>
+<li><strong>By default, your CodeBuild containers are launched outside the VPC.</strong> It cannot access resources within the VPC. When creating a CodeBuild project, we can specify the VPC where it should be launched. This way, the CodeBuild project can access resources within the VPC.</li>
+<li>CodeBuild creates a Docker container as the building or testing environment.</li>
+<li>CodeBuild projects can be added as stages in <a href="/article/codepipeline">CodePipeline</a></li>
+<li>CodeBuild containers are deleted at the end of their execution (success or failure). You can't SSH into them, even while they're running.</li>
+<li><strong>CodeBuild scales automatically</strong> to meet peak build requests. CodeBuild eliminates the need to provision, manage, and scale your own build servers.</li>
+</ul>
+<blockquote>
+<p>CodePipeline and CodeBuild can be combined to build a single page application from MD files and copy the static files to an S3 bucket. This is because CodeBuild can run any commands, so you can use it to run commands including build a static website and copy your static web files to an S3 bucket; and CodePipeline will help make it into a pipeline.</p>
+</blockquote>
+<h1 id="build-flow">Build flow</h1>
+<p>Based on the environment (language), CodeBuild pulls an <strong>AWS pre-packaged Docker image</strong> or a custom image provided by us to build the source code into an artifact based on the instructions provided in <code>buildspec.yaml</code>. <strong>CodeBuild can cache some files (eg. dependencies) in an S3 bucket to share between builds in order to speed up future builds.</strong> The artifact created by the build stage is extracted out of the container and stored in the S3 bucket.</p>
+<p><img src="/_resources/155392d0c90e4ece85e51606ee0f4f91.png" /></p>
+<h1 id="buildspecyaml"><code>buildspec.yaml</code></h1>
+<ul>
+<li>Must be present at the root of repo</li>
+<li><code>env</code> - environment variables
+<ul>
+<li>plain-text variables defined in the yaml file</li>
+<li>parameter store</li>
+<li>secrets manager</li>
+</ul>
+</li>
+<li><code>phases</code> - specify commands to run:
+<ul>
+<li><code>install</code> - install dependencies needed for building</li>
+<li><code>pre_build</code> - commands to execute before build</li>
+<li><code>build</code> - build commands</li>
+<li><code>post_build</code> - post build commands (eg. push Docker image to repo, zip build files)</li>
+</ul>
+</li>
+<li><code>artifacts</code> - which file to upload to S3 as artifact (encrypted with KMS)</li>
+<li><code>cache</code> - files to cache (usually dependencies) to S3 to speed up future builds</li>
+</ul>
+<p><img src="/_resources/3c9d661b7a5145c9a2efbb574574b697.png" />{width=50%}</p>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

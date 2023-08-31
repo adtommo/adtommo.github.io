@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Route 53 - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Route 53</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692713626611"
+                  >2023-08-22 15:13</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692802272128"
+                  >2023-08-23 15:51</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Networking</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Global Service</li>
+<li>AWS managed <strong>Authoritative DNS</strong> (customer can update the DNS records and have full control over the DNS)</li>
+<li>Also a Domain Registrar (for registering domain names)</li>
+<li>Only AWS service which provides 100% availability SLA</li>
+<li>Affected by client's DNS caching (not suitable for Blue-Green Deployment if the client caches DNS queries)</li>
+</ul>
+<blockquote>
+<p>It is recommended to use DNS names or URLs instead of IPs wherever possible</p>
+</blockquote>
+<h1 id="hosted-zone">Hosted Zone</h1>
+<ul>
+<li>A container for DNS records that define how to route traffic to a domain and its subdomains.</li>
+<li>Hosted zone is queried to get the IP address from the hostname</li>
+<li>Two types:
+<ul>
+<li><strong>Public Hosted Zone</strong>
+<ul>
+<li>resolves public domain names</li>
+<li>can be queried by anyone on the internet</li>
+</ul>
+</li>
+<li><strong>Private Hosted Zone</strong>
+<ul>
+<li>resolves private domain names</li>
+<li>can only be queried from within the VPC</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="record-types">Record Types</h1>
+<ul>
+<li><strong>A</strong> - maps a hostname to IPv4</li>
+<li><strong>AAAA</strong> - maps a hostname to IPv6</li>
+<li><strong>CNAME</strong> - maps a hostname to another hostname
+<ul>
+<li>The target is a domain name which must have an A or AAAA record</li>
+<li><strong>Cannot point to root domains (Zone Apex)</strong><br />
+Ex: you can’t create a CNAME record for <code>example.com</code>, but you can create for <code>something.example.com</code></li>
+</ul>
+</li>
+<li><strong>NS</strong> (Name Servers) - controls how traffic is routed for a domain</li>
+<li><strong>Alias</strong> - maps a hostname to an AWS resource
+<ul>
+<li><strong>AWS proprietary</strong></li>
+<li>Can point to root (zone apex) and non-root domains</li>
+<li><strong>Alias Record is of type A or AAAA</strong> (IPv4 / IPv6)</li>
+<li>Targets can be
+<ul>
+<li>Elastic Load Balancers</li>
+<li>CloudFront Distributions</li>
+<li>API Gateway</li>
+<li>Elastic Beanstalk environments</li>
+<li>S3 Websites</li>
+<li>VPC Interface Endpoints</li>
+<li>Global Accelerator</li>
+<li>Route 53 record in the same hosted zone</li>
+</ul>
+</li>
+<li><strong>Target cannot be EC2</strong></li>
+</ul>
+</li>
+</ul>
+<h1 id="routing-policies">Routing Policies</h1>
+<h2 id="simple">Simple</h2>
+<ul>
+<li>
+<p>Route to one or more resources</p>
+</li>
+<li>
+<p>If multiple values are returned, client chooses one at random (client-side load balancing)</p>
+<p><img src="/_resources/1c07806a58a548c3bda63fe00b7a107e.png" />{width=50%}</p>
+</li>
+<li>
+<p><strong>No health check</strong> (if returning multiple resources, some of them might be unhealthy)</p>
+</li>
+</ul>
+<h2 id="weighted">Weighted</h2>
+<ul>
+<li>Route a fraction of request to multiple resources</li>
+<li>Health checks</li>
+<li>Use case: testing a new application version by sending a small amount of traffic</li>
+<li>Can be used for <strong>Active-Active failover</strong> strategy</li>
+</ul>
+<h2 id="latency-based">Latency-based</h2>
+<ul>
+<li>Redirect to the resource that has the lowest latency</li>
+<li>Health checks</li>
+<li>Can be used for <strong>Active-Active failover</strong> strategy</li>
+</ul>
+<h2 id="failover">Failover</h2>
+<ul>
+<li>Primary &amp; Secondary Records (if the primary application is down, route to secondary application)</li>
+<li>Health check must be associated with the primary record</li>
+<li>Used for <strong>Active-Passive failover</strong> strategy</li>
+</ul>
+<h2 id="geolocation">Geolocation</h2>
+<ul>
+<li>Routing based on the client's location</li>
+<li>Should create a “Default” record (in case there’s no match on location)</li>
+<li>Use cases: restrict content distribution &amp; language preference</li>
+</ul>
+<h2 id="geoproximity">Geoproximity</h2>
+<ul>
+<li>Route traffic to your resources based on the proximity of clients to the resources</li>
+<li>Ability to shift more traffic to resources based on the defined bias.
+<ul>
+<li>To expand (bias: 1 to 99) → more traffic to the resource</li>
+<li>To shrink (bias: -1 to-99) → less traffic to the resource</li>
+</ul>
+</li>
+<li>Resources can be:
+<ul>
+<li>AWS resources (specify AWS region)</li>
+<li>Non-AWS resources (specify Latitude and Longitude)</li>
+</ul>
+</li>
+<li>Uses <strong>Route 53 Traffic Flow</strong></li>
+</ul>
+<h2 id="multi-value">Multi-value</h2>
+<ul>
+<li>Route traffic to multiple resources (max 8)</li>
+<li>Health Checks (only healthy resources will be returned)</li>
+</ul>
+<h1 id="health-checks">Health Checks</h1>
+<ul>
+<li>HTTP Health Checks are only for public resources</li>
+<li>Allows for Automated DNS Failover</li>
+<li>Three types:
+<ul>
+<li><strong>Monitor an endpoint</strong> (application or other AWS resource)
+<ul>
+<li>Multiple <strong>global health checkers</strong> check the endpoint health</li>
+<li>Must configure the application firewall to allow incoming requests from the IPs of Route 53 Health Checkers</li>
+<li>Supported protocols: HTTP, HTTPS and TCP</li>
+</ul>
+</li>
+<li><strong>Monitor other health checks</strong> (Calculated Health Checks)
+<ul>
+<li>Combine the results of multiple Health Checks into one (AND, OR, NOT)</li>
+<li>Specify how many of the health checks need to pass to make the parent pass</li>
+<li>Usage: perform maintenance to your website without causing all health checks to fail</li>
+</ul>
+</li>
+<li><strong>Monitor CloudWatch Alarms</strong> (to perform health check on private resources)
+<ul>
+<li>Route 53 health checkers are outside the VPC. They can’t access private endpoints  in VPC or on-premises resources.</li>
+<li>Create a CloudWatch Metric and associate a CloudWatch Alarm to it, then create a Health Check that checks the CW alarm.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="godaddy-with-route-53">GoDaddy with Route 53</h1>
+<p><strong>Use GoDaddy as registrar and Route 53 as DNS</strong>: Once we register a hostname at GoDaddy, we need to update the name servers (NS) of GoDaddy to match the name servers of a public hosted zone created in Route 53. This way, GoDaddy will use Route 53’s DNS.</p>
+<h1 id="dns-resolution-in-hybrid-cloud">DNS Resolution in Hybrid Cloud</h1>
+<ul>
+<li>To resolve DNS queries for resources in the VPC from the on-premises network, create an inbound endpoint on Route 53 Resolver and then DNS resolvers on the on-premises network can forward DNS queries to Route 53 Resolver via this endpoint.</li>
+<li>To resolve DNS queries for resources in the on-premises network from the VPC, create an outbound endpoint on Route 53 Resolver and then Route 53 Resolver can conditionally forward queries to resolvers on the on-premises network via this endpoint. To conditionally forward queries, create Resolver rules that specify the domain names for the DNS queries that you want to forward (such as <a title="http://example.com/" href="http://example.com/">example.com</a>) and the IP addresses of the DNS resolvers on the on-premises network that you want to forward the queries to.</li>
+</ul>
+<h1 id="misc">Misc</h1>
+<ul>
+<li><strong>Failure Threshold</strong> is the parameter used by Route 53 health checks to determine if an endpoint is healthy. A failure occurs if an endpoint does not respond to a request.</li>
+<li>Route 53 can be used as a DNS to register a domain name, route the internet traffic, and perform health checks on resources. If being used for all three tasks, the order of setup must be sequential as above.</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

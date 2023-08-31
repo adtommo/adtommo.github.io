@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>CloudTrail - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">CloudTrail</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692798197020"
+                  >2023-08-23 14:43</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692798224575"
+                  >2023-08-23 14:43</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Observability</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li><strong>Global Service</strong> (a single trail can be applied to multiple regions)</li>
+<li>Provides governance, compliance and audit by recording all the API calls to AWS services made within the account.</li>
+<li>Enabled by default</li>
+<li><strong>Event retention: 90 days</strong></li>
+<li>Export CloudTrail logs into
+<ul>
+<li>CloudWatch Logs</li>
+<li>S3 (encrypted by default using <strong>SSE-S3</strong>)</li>
+</ul>
+</li>
+<li>CloudTrail logs up to the last 90 days can be analyzed in CloudTrail Console. Older logs should be present in S3 and can be analyzed using <strong>Athena</strong>.</li>
+</ul>
+<blockquote>
+<p>Modifications to log files can be detected by enabling <strong>Log File Validation</strong> on the logging bucket</p>
+</blockquote>
+<h1 id="event-types">Event Types</h1>
+<h2 id="management-events">Management Events</h2>
+<ul>
+<li>Events of operations that modify AWS resources. Ex:
+<ul>
+<li>Creating a new IAM user</li>
+<li>Deleting a subnet</li>
+</ul>
+</li>
+<li><strong>Enabled by default</strong></li>
+<li>Can separate Read Events (that don’t modify resources) from Write Events (that may modify resources)</li>
+</ul>
+<h2 id="data-events">Data Events</h2>
+<ul>
+<li>Events of operations that modify data
+<ul>
+<li>S3 object-level activity</li>
+<li>Lambda function execution</li>
+</ul>
+</li>
+<li><strong>Disabled by default</strong> (due to high volume of data events)</li>
+</ul>
+<h2 id="insight-events">Insight Events</h2>
+<ul>
+<li>Enable <strong>CloudTrail Insights</strong> to detect unusual activity in your account
+<ul>
+<li>inaccurate resource provisioning</li>
+<li>hitting service limits</li>
+<li>bursts of AWS IAM actions</li>
+<li>gaps in periodic maintenance activity</li>
+</ul>
+</li>
+<li>CloudTrail Insights analyzes normal management events to create a baseline and then continuously analyzes write events to detect unusual patterns. If that happens, CloudTrail generates insight events that
+<ul>
+<li>show anomalies in the Cloud Trail console</li>
+<li>can can be logged to S3</li>
+<li>can trigger an EventBridge event for automation</li>
+</ul>
+</li>
+</ul>
+<h1 id="encryption">Encryption</h1>
+<blockquote>
+<p>A single KMS key can be used to encrypt log files for trails applied to all regions</p>
+</blockquote>
+<h1 id="organization-trail">Organization Trail</h1>
+<ul>
+<li>Trail that logs events across all the accounts in an organization</li>
+<li>Must be created in the master account</li>
+<li>Member accounts will be able to see the organization trail, but cannot modify or delete it.</li>
+<li>By default, member accounts will not have access to the log files for the organization trail in the S3 bucket.</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

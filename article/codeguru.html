@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>CodeGuru - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">CodeGuru</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692804957857"
+                  >2023-08-23 16:35</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692805033455"
+                  >2023-08-23 16:37</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">CICD</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><ul>
+<li>An ML-powered service for <strong>automated code reviews</strong> and <strong>application performance recommendations</strong></li>
+<li>Provides two functionalities
+<ul>
+<li><strong>CodeGuru Reviewer</strong>: automated code reviews for static code analysis when the code is pushed to CodeCommit in <strong>development</strong></li>
+<li><strong>CodeGuru Profiler</strong>: visibility and recommendations about application performance during<br />
+runtime in <strong>production</strong></li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/e50055fc0c4243c68cbc5868a42d2dd2.png" /></p>
+<h3 id="codeguru-agent">CodeGuru Agent</h3>
+<ul>
+<li><strong>CodeGuru Profiler</strong> works by running CodeGuru Agent alongside the application</li>
+<li>Configurations:
+<ul>
+<li>
+<p><code>MaxStackDepth</code> - max function stack depth profiled</p>
+<p>Example: If CodeGuru Profiler finds a method A, which calls method B, which calls<br />
+method C, which calls method D, then the depth is 4. So, if the MaxStackDepth is set to 2, then the profiler evaluates A and B.</p>
+</li>
+<li>
+<p><code>MemoryUsageLimitPercent</code> - max memory percentage used by the profiler</p>
+</li>
+<li>
+<p><code>MinimumTimeForReportingInMilliseconds</code> - min time between sending reports</p>
+</li>
+<li>
+<p><code>ReportinglntervalInMilliseconds</code> - time interval between sending reports</p>
+</li>
+<li>
+<p><code>SamplingIntervallnMilliseconds</code> - the sampling interval that is used to profile<br />
+samples (reduce to have a higher sampling rate)</p>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

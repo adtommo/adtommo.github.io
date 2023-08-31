@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Athena - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Athena</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692797831802"
+                  >2023-08-23 14:37</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692802592758"
+                  >2023-08-23 15:56</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Storage &amp; Querying</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li><strong>Serverless</strong> query service to <strong>perform analytics on data stored in S3</strong></li>
+<li>Uses <strong>SQL</strong> language to query the files</li>
+<li><strong>Runs directly on S3</strong> (no copying needed)</li>
+<li>Output stored in S3</li>
+<li>Built on <strong>Presto</strong> engine</li>
+<li>Supports CSV, JSON, ORC, AVI and Parquet file formats</li>
+<li>Integrates with <strong>QuickSight</strong> for reporting &amp; dashboards</li>
+</ul>
+<p><img src="/_resources/28e7fb08cf40423f819d2e5010cd20bf.png" />{width=30%}</p>
+<h1 id="performance-improvement">Performance Improvement</h1>
+<ul>
+<li>Use compressed or columnar data for cost-savings (due to less scan)
+<ul>
+<li><strong>Apache Parquet</strong> or <strong>ORC</strong> file format is recommended (use <strong>Glue</strong> to convert data to these formats)</li>
+</ul>
+</li>
+<li>Compress data for faster retrievals</li>
+<li>Partition datasets in S3 hierarchically for easy querying</li>
+<li>Use fewer large files (&gt; 128 MB) instead of many small files for faster processing</li>
+</ul>
+<h1 id="federated-query">Federated Query</h1>
+<ul>
+<li>Run <strong>SQL queries on data stored in any data source</strong> (relational, non-relational, object, custom data sources on AWS or on-premise)</li>
+<li>Uses <strong>Data Source Connectors</strong> that runs on AWS Lambda to run federated queries on these data sources.</li>
+</ul>
+<p><img src="/_resources/48ca0055b0eb462abed84404e8fb7d0c.png" />{width=50%}</p>
+<h1 id="misc">Misc</h1>
+<ul>
+<li>The <code>MSCK REPAIR TABLE</code> command scans Amazon S3 for Hive compatible partitions that were added to the file system after the table was created. It compares the partitions in the table metadata and the partitions in S3. If new partitions are present in S3, it adds those partitions to the metadata and to the Athena table. It can work better than DDL commands if have more than a few thousand partitions and DDL is facing <strong>timeout issues.</strong></li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

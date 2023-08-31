@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>ASG - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">ASG</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692717633147"
+                  >2023-08-22 16:20</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692801787232"
+                  >2023-08-23 15:43</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Infrastructure</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Regional Service (cannot span multiple regions)</li>
+<li>Supports Multi AZ</li>
+<li>Automatically add or remove instances (scale horizontally) based on the load</li>
+<li>Free (pay for the underlying resources)</li>
+<li>IAM roles attached to an ASG will get assigned to the launched EC2 instances</li>
+<li>ASG can terminate instances marked as unhealthy by an ELB (and hence replace them)</li>
+</ul>
+<blockquote>
+<p>If you have an ASG with running instances and you delete the ASG, the instances will be terminated and the ASG will be deleted.</p>
+</blockquote>
+<h1 id="scaling-policies">Scaling Policies</h1>
+<ul>
+<li><strong>Scheduled Scaling</strong>
+<ul>
+<li>Scale based on a schedule</li>
+<li>Used when the load pattern is predictable</li>
+</ul>
+</li>
+<li><strong>Simple Scaling</strong>
+<ul>
+<li>Scale to certain size on a CloudWatch alarm</li>
+<li>Ex. when CPU &gt; 90%, then scale to 10 instances</li>
+</ul>
+</li>
+<li><strong>Step Scaling</strong>
+<ul>
+<li>Scale incrementally in steps using CloudWatch alarms</li>
+<li>Ex. when CPU &gt; 70%, then add 2 units and when CPU &lt; 30%, then remove 1 unit</li>
+<li>Specify the <strong>instance warmup time</strong> to scale faster</li>
+</ul>
+</li>
+<li><strong>Target Tracking Scaling</strong>
+<ul>
+<li>ASG maintains a CloudWatch metric and scale accordingly (automatically creates CW alarms)</li>
+<li>Ex. maintain CPU usage at 40%</li>
+</ul>
+</li>
+<li><strong>Predictive Scaling</strong>
+<ul>
+<li>Historical data is used to predict the load pattern using ML and scale automatically</li>
+</ul>
+</li>
+</ul>
+<h1 id="launch-configuration-launch-template">Launch Configuration &amp; Launch Template</h1>
+<ul>
+<li>Defines the following info for ASG
+<ul>
+<li>AMI (Instance Type)</li>
+<li>EC2 User Data</li>
+<li>EBS Volumes</li>
+<li>Security Groups</li>
+<li>SSH Key Pair</li>
+<li>Min / Max / Desired Capacity</li>
+<li>Subnets (where the instances will be created)</li>
+<li>Load Balancer (specify which ELB to attach instances)</li>
+<li>Scaling Policy</li>
+</ul>
+</li>
+<li><strong>Launch Configuration</strong> (legacy)
+<ul>
+<li>Cannot be updated (must be re-created)</li>
+<li><strong>Does not support Spot Instances</strong></li>
+</ul>
+</li>
+<li><strong>Launch Template</strong> (newer)
+<ul>
+<li>Versioned</li>
+<li>Can be updated</li>
+<li><strong>Supports both On-Demand and Spot Instances</strong></li>
+<li>Recommended by AWS</li>
+</ul>
+</li>
+</ul>
+<h1 id="scaling-cooldown">Scaling Cooldown</h1>
+<ul>
+<li>After a scaling activity happens, the ASG goes into cooldown period (<strong>default 300 seconds</strong>) during which it does not launch or terminate additional instances (ignores scaling requests) to allow the metrics to stabilize.</li>
+<li>Use ready-to-use AMI to launch instances faster to be able to reduce the cooldown period</li>
+</ul>
+<h1 id="health-checks">Health Checks</h1>
+<ul>
+<li>By default, ASG uses the EC2 status check (not the ELB health check). This could explain why some instances that are labelled as unhealthy by an ELB are still not terminated by the ASG.</li>
+<li>To prevent ASG from replacing unhealthy instances, suspend the <strong>ReplaceUnhealthy</strong> process type.</li>
+</ul>
+<blockquote>
+<p>When an instance is unhealthy, ASG creates a new scaling activity for terminating the unhealthy instance and then terminates it. Later, another scaling activity launches a new instance to replace the terminated instance.</p>
+</blockquote>
+<h1 id="termination-policy">Termination Policy</h1>
+<ul>
+<li>Select the AZ with the most number of instances</li>
+<li>Delete the instance with the oldest launch configuration</li>
+<li>Delete the instance which is closest to the next billing hour</li>
+</ul>
+<h1 id="rebalancing-azs">Rebalancing AZs</h1>
+<p>ASG ensures that the group never goes below the minimum scale. Actions such as changing the AZ for the group or explicitly terminating or detaching instances can lead to the ASG becoming unbalanced between AZs. In such cases, ASG compensates by <strong>rebalancing</strong> the AZs by <strong>launching new instances before terminating the old ones</strong>, so that rebalancing does not compromise the performance or availability of the application.</p>
+<h1 id="lifecycle-hooks">Lifecycle Hooks</h1>
+<ul>
+<li>Used to perform extra steps before launching or terminating an instance. Example:
+<ul>
+<li>Install some extra software or do some checks (during pending state) before declaring the instance as "in service"</li>
+<li>Before the instance is terminated (terminating state), extract the log files</li>
+</ul>
+</li>
+<li><strong>Without lifecycle hooks, pending and terminating states are avoided</strong></li>
+</ul>
+<p><img src="/_resources/d01101de26c840dcb82a333ad1a2824e.png" />{width=80%}</p>
+<h2 id="instance-refresh">Instance Refresh</h2>
+<ul>
+<li><code>StartInstanceRefresh</code> API call to update the instances to the latest launch template (doesn’t happen automatically if we just update the launch template)</li>
+<li>Can specify <strong>minimum healthy percentage</strong> (for rolling update)</li>
+<li>Can specify <strong>warm-up time</strong> (how long to wait for the new instances to become ready to use)</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

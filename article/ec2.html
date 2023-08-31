@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>EC2 - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">EC2</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692699173981"
+                  >2023-08-22 11:12</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692800690315"
+                  >2023-08-23 15:24</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Compute</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Regional Service</li>
+<li><strong>Infrastructure as a Service (IaaS)</strong></li>
+<li>Stopping &amp; Starting an instance may change its public IP but not its private IP</li>
+<li><strong>AWS Compute Optimizer</strong> recommends optimal AWS Compute resources for your workloads</li>
+<li>There is a vCPU-based On-Demand Instance soft limit per region</li>
+</ul>
+<h1 id="user-data">User Data</h1>
+<ul>
+<li>Bootstrap script (runs on the first launch)</li>
+<li>Used to automate dynamic boot tasks (that cannot be done using AMIs)
+<ul>
+<li>Installing updates</li>
+<li>Installing software</li>
+<li>Downloading common files from the internet</li>
+</ul>
+</li>
+<li>Runs with the root user privilege</li>
+</ul>
+<h1 id="instance-classes">Instance Classes</h1>
+<ul>
+<li><strong>General Purpose</strong>
+<ul>
+<li>Great for a diversity of workloads such as web servers or code repositories</li>
+<li>Balance between compute, memory &amp; networking</li>
+</ul>
+</li>
+<li><strong>Compute Optimized</strong>
+<ul>
+<li>Great for compute intensive tasks
+<ul>
+<li>Batch Processing</li>
+<li>Media Transcoding</li>
+<li>HPC</li>
+<li>Gaming Servers</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Memory Optimized</strong>
+<ul>
+<li>Great for in-memory databases or distributed web caches</li>
+</ul>
+</li>
+<li><strong>Storage Optimized</strong>
+<ul>
+<li>Great for storage intensive tasks (accessing local databases)
+<ul>
+<li>OLTP systems</li>
+<li>Distributed File System (DFS)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="security-groups">Security Groups</h1>
+<ul>
+<li><strong>Only contain Allow rules</strong></li>
+<li>External firewall for EC2 instances (applied on ENI, if a request is blocked by SG, instance will never know)</li>
+<li>Security groups rules can reference a resource by IP or Security Group</li>
+<li>Default SG
+<ul>
+<li>inbound traffic from the same SG is allowed</li>
+<li>all outbound traffic is allowed</li>
+</ul>
+</li>
+<li>New SG
+<ul>
+<li>all inbound traffic is blocked</li>
+<li>all outbound traffic is allowed</li>
+</ul>
+</li>
+<li>A security group can be attached to multiple instances and vice versa</li>
+<li>Bound to a VPC (and hence to a region)</li>
+<li>Recommended to maintain a separate security group for SSH access</li>
+<li>Blocked requests will give a <strong>504 Timeout</strong> error</li>
+</ul>
+<h1 id="elastic-network-interface-eni">Elastic Network Interface (ENI)</h1>
+<ul>
+<li>ENI is a virtual network card that <strong>gives a private IP to an EC2 instance</strong></li>
+<li>A primary ENI is created and attached to the instance upon creation and will be deleted automatically upon instance termination.</li>
+<li>We can create additional ENIs and attach them to an EC2 instance to access it via multiple private IPs.</li>
+<li>We can detach &amp; attach ENIs across instances</li>
+<li><strong>ENIs are tied to the subnet</strong> (and hence to the AZ)<br />
+ENI is a virtual network card that gives a private IP to an EC2 instance</li>
+</ul>
+<h1 id="instance-profile">Instance Profile</h1>
+<ul>
+<li>Never enter AWS credentials into the EC2 instance, instead attach IAM Roles to the instances (instance profile)</li>
+<li>Steps to create an instance profile for an EC2 instance and add a role to it
+<ul>
+<li><code>aws iam create-instance-profile</code></li>
+<li><code>aws iam add-role-to-instance-profile</code></li>
+<li><code>aws ec2 associate-iam-instance-profile</code></li>
+</ul>
+</li>
+</ul>
+<h1 id="purchasing-options">Purchasing Options</h1>
+<h3 id="on-demand-instances">On-demand Instances</h3>
+<ul>
+<li>Pay per use (no upfront payment)</li>
+<li>Highest cost</li>
+<li>No long-term commitment</li>
+<li>Recommended for short-term, uninterrupted and <strong>unpredictable</strong> workloads</li>
+</ul>
+<h3 id="standard-reserved-instances">Standard Reserved Instances</h3>
+<ul>
+<li>Reservation Period: 1 year or 3 years</li>
+<li>Recommended for steady-state applications (like database)</li>
+<li><strong>Sell unused instances</strong> on the Reserved Instance Marketplace</li>
+</ul>
+<h3 id="convertible-reserved-instances">Convertible Reserved Instances</h3>
+<ul>
+<li>Can change the instance type</li>
+<li>Lower discount</li>
+<li><strong>Cannot sell unused instances</strong> on the Reserved Instance Marketplace</li>
+</ul>
+<h3 id="scheduled-reserved-instances">Scheduled Reserved Instances</h3>
+<ul>
+<li>reserved for a time window (ex. everyday from 9AM to 5PM)</li>
+</ul>
+<h3 id="spot-instances">Spot Instances</h3>
+<ul>
+<li>Work on a bidding basis where you are willing to pay a specific max hourly rate for the instance. Your instance will get interrupted if the spot price increases your bidding price.</li>
+<li>The behavior for spot instance interruption can be <strong>stop</strong>, <strong>hibernate</strong> or <strong>terminate</strong>. It cannot be <strong>reboot</strong>.</li>
+<li><strong>Spot blocks</strong> are designed not to be interrupted</li>
+<li>Good for workloads that are resilient to failure
+<ul>
+<li>Distributed jobs (resilient if some nodes go down)</li>
+<li>Batch jobs</li>
+</ul>
+</li>
+</ul>
+<h3 id="dedicated-hosts">Dedicated Hosts</h3>
+<ul>
+<li>Server hardware is allocated to a specific company (not shared with other companies)</li>
+<li><strong>3 year reservation</strong> period</li>
+<li>Billed per host (expensive)</li>
+<li>Useful for software that have <strong>BYOL (Bring Your Own License)</strong> or for companies that have strong regulatory or compliance needs</li>
+</ul>
+<h3 id="dedicated-instances">Dedicated Instances</h3>
+<ul>
+<li>Instances running on a <strong>dedicated hardware for an AWS account</strong>.</li>
+<li>Both dedicated and non-dedicated instances of an account can be running on the dedicated hardware</li>
+<li>Billed per instance</li>
+<li>No control over instance placement</li>
+<li>Cheaper than Dedicated Host</li>
+</ul>
+<h3 id="zonal-reserved-instances">Zonal Reserved Instances</h3>
+<ul>
+<li>Reserve capacity in an AZ to launch EC2 instances when needed</li>
+<li>Can reserve for a recurring schedule (ex. everyday from 9AM to 5PM)</li>
+<li><strong>No need for 1 or 3-year commitment</strong> (independent of billing discounts)</li>
+<li>Need to specify the following to create capacity reservation:
+<ul>
+<li>AZ</li>
+<li>Number of instances</li>
+<li>Instance attributes</li>
+</ul>
+</li>
+<li><strong>Regional reserved instances don’t provide capacity reservations</strong></li>
+<li></li>
+</ul>
+<h3 id="reserved-capacity-and-instance-comparison">Reserved Capacity and Instance Comparison</h3>
+<p><img src="/_resources/30ce2fb5311d4e57a89f8838ad74f957.png" /></p>
+<h2 id="spot-instances-2">Spot Instances</h2>
+<h3 id="spot-requests">Spot Requests</h3>
+<ul>
+<li><strong>One-time</strong>: Request once opened, spins up the spot instances and the request closes.</li>
+<li><strong>Persistent</strong>:
+<ul>
+<li>Request will stay disabled while the spot instances are up and running.</li>
+<li>It becomes active after the spot instance is interrupted.</li>
+<li>If you stop the spot instance, the request will become active only after you start the spot instance.</li>
+</ul>
+</li>
+<li>You can only cancel spot requests that are open, active, or disabled.</li>
+<li>Cancelling a Spot Request does not terminate instances. You must first cancel a Spot Request, and then terminate the associated Spot Instances.</li>
+</ul>
+<h3 id="spot-fleets">Spot Fleets</h3>
+<ul>
+<li>Combination of spot and on-demand instances (optional) that tries to <strong>optimize for cost or capacity</strong></li>
+<li><strong>Launch Templates must be used to have on-demand instances in the fleet</strong></li>
+<li>Can consist of instances of different classes</li>
+<li>Strategies to allocate Spot Instances:
+<ul>
+<li><strong>lowestPrice</strong> - from the pool with the lowest price (cost optimization, short workload)</li>
+<li><strong>diversified</strong> - distributed across all pools (great for availability, long workloads)</li>
+<li><strong>capacityOptimized</strong> - pool with the optimal capacity for the number of instances</li>
+</ul>
+</li>
+</ul>
+<h2 id="elastic-ip">Elastic IP</h2>
+<ul>
+<li><strong>Static Public IP</strong> that you own as long as you don't delete it</li>
+<li>Can be attached to an EC2 instance (even when it is stopped)</li>
+<li>Soft limit of 5 elastic IPs per account</li>
+<li>Doesn’t incur charges as long as the following conditions are met (EIP behaving like any other public IP randomly assigned to an EC2 instance):
+<ul>
+<li>The Elastic IP is associated with an Amazon EC2 instance</li>
+<li>The instance associated with the Elastic IP is running</li>
+<li>The instance has only one Elastic IP attached to it</li>
+</ul>
+</li>
+</ul>
+<h2 id="placement-groups-placement-strategies">Placement Groups (Placement Strategies)</h2>
+<ul>
+<li><strong>Cluster Placement Group (optimize for network)</strong>
+<ul>
+<li>All the instances are placed on the same hardware (same rack)</li>
+<li>Pros: Great network (10 Gbps bandwidth between instances)</li>
+<li>Cons: If the rack fails, all instances will fail at the same time</li>
+<li>Used in <strong>HPC</strong> (minimize inter-node latency &amp; maximize throughput)</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/5898762d3d364e2bb371e1b33f767f6d.png" />{width=50%}</p>
+<ul>
+<li><strong>Spread Placement Group (maximize availability)</strong>
+<ul>
+<li>Each instance is in a separate rack (physical hardware)</li>
+<li>Supports Multi AZ</li>
+<li>Up to 7 instances per AZ per placement group (ex. for 15 instances, need 3 AZ)</li>
+<li>Used for critical applications</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/049f899d9f11463188707e1ce6df21a1.png" />{width=50%}</p>
+<ul>
+<li><strong>Partition Placement Group (balance of performance and availability)</strong>
+<ul>
+<li>Instances in a partition share rack with each other</li>
+<li>If the rack goes down, the entire partition goes down</li>
+<li>Up to 7 partitions per AZ</li>
+<li>Used in <strong>big data</strong> applications (Hadoop, HDFS, HBase, Cassandra, Kafka)<br />
+<img src="/_resources/1bdd7fe138ad43f6a0ceeecaf2d5b83e.png" />{width=50%}</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>If you receive a capacity error when launching an instance in a placement group that already has running instances, stop and start all of the instances in the placement group, and try the launch again. Restarting the instances may migrate them to hardware that has capacity for all the requested instances.</p>
+</blockquote>
+<h2 id="instance-states">Instance States</h2>
+<ul>
+<li><strong>Stop</strong>
+<ul>
+<li>EBS root volume is preserved</li>
+</ul>
+</li>
+<li><strong>Terminate</strong>
+<ul>
+<li>EBS root volume gets destroyed</li>
+</ul>
+</li>
+<li><strong>Hibernate</strong>
+<ul>
+<li>Hibernation saves the contents from the instance memory (RAM) to the EBS root volume</li>
+<li>EBS root volume is preserved</li>
+<li>The instance boots much faster as the OS is not stopped and restarted</li>
+<li>When you start your instance:
+<ul>
+<li>EBS root volume is restored to its previous state</li>
+<li>RAM contents are reloaded</li>
+<li>Processes that were previously running on the instance are resumed</li>
+<li>Previously attached data volumes are reattached and the instance retains its instance ID</li>
+</ul>
+</li>
+<li>Should be used for applications that take a long time to start</li>
+<li><strong>Not supported for Spot Instances</strong></li>
+<li>Max hibernation duration = <strong>60 days</strong></li>
+</ul>
+</li>
+<li><strong>Standby</strong>
+<ul>
+<li>Instance remains attached to the ASG but is temporarily put out of service (the ASG doesn't replace this instance)</li>
+<li>Used to install updates or troubleshoot a running instance</li>
+</ul>
+</li>
+</ul>
+<h2 id="ec2-nitro">EC2 Nitro</h2>
+<ul>
+<li>Newer virtualization technology for EC2 instances</li>
+<li>Better networking options (enhanced networking, HPC, IPv6)</li>
+<li>Higher Speed EBS (64,000 EBS IOPS max on Nitro instances whereas 32,000 on non-Nitro)</li>
+<li>Better underlying security</li>
+</ul>
+<h2 id="vcpu-threads">vCPU &amp; Threads</h2>
+<ul>
+<li>vCPU is the total number of concurrent threads that can be run on an EC2 instance</li>
+<li>Usually 2 threads per CPU core (eg. 4 CPU cores ⇒ 8 vCPU)</li>
+</ul>
+<h2 id="amazon-machine-image-ami">Amazon Machine Image (AMI)</h2>
+<ul>
+<li>AMIs are the image of the instance after installing all the necessary OS, software and configuring everything.</li>
+<li>It boots much faster because the whole thing is pre-packaged and doesn’t have to be installed separately for each instance.</li>
+<li>Good for static configurations</li>
+<li><strong>Bound to a region</strong> (can be copied across regions)</li>
+</ul>
+<blockquote>
+<p>When the new AMI is copied from region A into region B, it automatically creates a snapshot in region B because AMIs are based on the underlying snapshots.</p>
+</blockquote>
+<h2 id="billing">Billing</h2>
+<ul>
+<li><strong>Reserved instances will be billed regardless of their state</strong> (billed for a reserved period)</li>
+<li><strong>On-demand instances in <code>stopping</code> state when preparing to hibernate will be billed</strong></li>
+<li>If an instance is running, it will be billed</li>
+<li>In all the other cases, an instance will not be billed</li>
+<li><strong>Burstable performance instances</strong> (T3, T3a, and T2 families), are designed to provide a baseline level of CPU performance with the ability to burst to a higher level when required by your workload.</li>
+<li>Burstable instances use a credit system to manage CPU performance. When the instance is idle or not using its full CPU capacity, it earns CPU credits. When the instance needs more CPU performance than its baseline, it can use these credits to "burst" above its baseline and provide the needed performance. ****Example: for a T2.micro instance in a new AWS account (&lt; 1 year old), burst performance will cost nothing as it will consume the credits from the free tier.</li>
+</ul>
+<h2 id="run-command">Run Command</h2>
+<ul>
+<li>Systems Manager <strong>Run Command</strong> lets you remotely and securely <strong>manage the configuration</strong> of your <strong>managed instances</strong>. A <em>managed instance</em> is any EC2 instance that has been configured for <strong>Systems Manager</strong>.</li>
+<li>Run Command enables you to <strong>automate common administrative tasks</strong> and perform ad-hoc configuration changes at scale.</li>
+<li>You can use Run Command from the <strong>AWS Console</strong>, the AWS CLI, AWS Tools for Windows PowerShell, or the AWS SDKs. Run Command is offered at no additional cost.</li>
+</ul>
+<h2 id="instance-tenancy">Instance Tenancy</h2>
+<ul>
+<li><strong>Default</strong>: Instance runs on shared hardware</li>
+<li><strong>Dedicated</strong>: Instance runs on single-tenant hardware</li>
+<li><strong>Host</strong>: Instance runs on dedicated host</li>
+</ul>
+<blockquote>
+<p>Tenancy of an instance can only be changed from host to dedicated or dedicated to host after the instance has been launched. Dedicated instance tenancy takes precedence over Default instance tenancy.</p>
+</blockquote>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li>The following are a few reasons why an instance might immediately terminate:
+<ul>
+<li>You’ve reached your EBS volume limit.</li>
+<li>An EBS snapshot is corrupt.</li>
+<li>The root EBS volume is encrypted and you do not have permissions to access the KMS key for decryption.</li>
+<li>The instance store-backed AMI that you used to launch the instance is missing a required part.</li>
+</ul>
+</li>
+</ul>
+<h3 id="ec2-instance-metadata">EC2 Instance Metadata</h3>
+<ul>
+<li>EC2 instances can get metadata about them @ <a title="http://169.254.169.254/latest/meta-data" href="http://169.254.169.254/latest/meta-data">http://169.254.169.254/latest/meta-data</a>. This API is internally available to the EC2 instances.</li>
+<li>It allows the instances to get the metadata without using an IAM role.</li>
+<li><strong>IAM role can be retrieved from the metadata but not the IAM policy.</strong></li>
+</ul>
+<blockquote>
+<p>When you have an IAM role attached to your EC2 instance and you run AWS CLI commands from inside this instance, AWS CLI uses instance metadata to get temporary credentials.</p>
+</blockquote>
+<h2 id="ssh-access">SSH Access</h2>
+<ul>
+<li>SSH keys can be used to securely SSH into public EC2 instances</li>
+<li><strong>Can generate a public key from the private key if the public key gets misplaced but not the other way around.</strong></li>
+<li>SSH keys can be reused across regions:
+<ol>
+<li>Generate a public SSH key (.pub) file from the private SSH key (.pem) file.</li>
+<li>Set the AWS Region you wish to import to.</li>
+<li>Import the public SSH key into the new Region.</li>
+</ol>
+</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

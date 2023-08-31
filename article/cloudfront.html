@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>CloudFront - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">CloudFront</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692795564846"
+                  >2023-08-23 13:59</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692804464216"
+                  >2023-08-23 16:27</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Storage &amp; Querying</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Global CDN that caches content at edge locations, reducing load at the origin</li>
+<li><strong>TTL (0 sec - 1 year)</strong> can be set by the origin using headers</li>
+<li>Supports <strong>Server Name Indication (SNI)</strong> to allow SSL traffic to multiple domains</li>
+<li><strong>CloudFront Geo Restriction</strong> can be used to allow or block countries from accessing a distribution.</li>
+<li><strong>Edge Locations are present outside the VPC</strong> so the origin's SG must be configured to allow inbound requests from the list of public IPs of all the edge locations.</li>
+<li>Supports HTTP/RTMP protocol (<strong>does not support UDP protocol</strong>)</li>
+<li>In-flight encryption using <strong>HTTPS</strong> (<strong>from client all the way to the origin</strong>)</li>
+<li>To block a specific IP at the CloudFront level, deploy a WAF on CloudFront</li>
+</ul>
+<h1 id="origin">Origin</h1>
+<ul>
+<li><strong>S3 Bucket</strong>
+<ul>
+<li>For distributing static files</li>
+<li><strong>Origin Access Identity (OAl) or Origin Access Control (OAC)</strong> allows the S3 bucket to only be accessed by CloudFront</li>
+<li>Can be used as ingress to upload files to S3 (transfer acceleration)</li>
+</ul>
+</li>
+<li><strong>Custom Origin</strong> (for HTTP) - need to be publicly accessible on HTTP by public IPs of edge locations
+<ul>
+<li>EC2 Instance</li>
+<li>ELB</li>
+<li>S3 Website (may contain client-side script)</li>
+<li>On-premise backend</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>To restrict access to ELB directly when it is being used as the origin in a CloudFront distribution, create a VPC Security Group for the ELB and use AWS Lambda to automatically update the CloudFront internal service IP addresses when they change.</p>
+</blockquote>
+<h1 id="pricing">Pricing</h1>
+<ul>
+<li>Price Class All: all regions (best performance)</li>
+<li>Price Class 200: most regions (excludes the most expensive regions)</li>
+<li>Price Class 100: only the least expensive regions</li>
+</ul>
+<h1 id="origin-groups">Origin Groups</h1>
+<p><img src="/_resources/4d0208ff01244b0490410d041f2e81eb.png" /></p>
+<ul>
+<li>Consists of a <strong>primary</strong> and a <strong>secondary</strong> origin (can be in <strong>different regions</strong>)</li>
+<li>Automatic failover to secondary</li>
+<li>Provides <strong>region-level</strong> high availability</li>
+<li>Use when getting 504 (gateway timeout) error</li>
+<li>CloudFront routes all incoming requests to the primary origin, even when a previous request failed over to the secondary origin. It only sends requests to the secondary origin after a request to the primary origin fails.</li>
+<li>CloudFront fails over to the secondary origin only when the HTTP method of the viewer request is <code>GET</code>, <code>HEAD</code>, or <code>OPTIONS</code>.</li>
+</ul>
+<h1 id="field-level-encryption">Field-level Encryption</h1>
+<ul>
+<li>Sensitive information sent by the user is encrypted at the edge close to user which can only be decrypted by the web server (intermediate services can't see the encrypted fields)</li>
+<li><strong>Asymmetric Encryption</strong> (public &amp; private key)</li>
+<li>Max 10 encrypted field</li>
+</ul>
+<h1 id="static-and-dynamic-distributions">Static and Dynamic Distributions</h1>
+<p><strong>By separating the static and dynamic content</strong> (creating different distributions)<strong>, we can maximize the cache hit in CloudFront.</strong> All the static content will be cached as no caching rules are needed to cache static content. Whereas, dynamic content will be cached based on headers and cookies in the request.</p>
+<p><img src="/_resources/c5188ceee5fc42228f4aaea98915461b.png" /></p>
+<h1 id="signed-url-cookies">Signed URL / Cookies</h1>
+<ul>
+<li>
+<p>Used to <strong>make a CloudFront distribution private</strong> (distribute to a subset of users)</p>
+</li>
+<li>
+<p>Signed URL ⇒ access to individual files</p>
+</li>
+<li>
+<p>Signed Cookies ⇒ access to multiple files</p>
+</li>
+<li>
+<p>Whenever we create a signed URL / cookie, we attach a policy specifying:</p>
+<ul>
+<li>URL / Cookie Expiration (TTL)</li>
+<li><strong>IP ranges</strong> allowed to access the data</li>
+<li>Trusted signers (which AWS accounts can create signed URLs)</li>
+</ul>
+</li>
+<li>
+<p><strong>How signed URL is generated</strong></p>
+<p><img src="/_resources/80ce8eef850c49d5bf9e01e92fc1785a.png" /></p>
+<ol>
+<li>The client authenticates and authorizes to the application.</li>
+<li>The application uses AWS SDK to generate the signed URL</li>
+<li>The application gives the signed URL to the client to access the private resource</li>
+</ol>
+</li>
+<li>
+<p><strong>Trusted Key Group</strong> signer is the recommended way of configuring CloudFront to use signed URLs or cookies. It is not recommended to create a CloudFront key-pair in an AWS account and access it at the root level.</p>
+</li>
+<li>
+<p>The signer uses its private key to sign the URL or cookies, and CloudFront uses the public key to verify the signature.</p>
+</li>
+</ul>
+<h2 id="cloudfront-signed-url">CloudFront Signed URL</h2>
+<ul>
+<li>Allow access to a path in the distribution, no matter what the origin is.</li>
+<li>Uses account-wide key-pair (managed by the root user)</li>
+<li><strong>Can apply filtering rules</strong> by IP, path, date and expiration</li>
+</ul>
+<h2 id="s3-pre-signed-url">S3 Pre-signed URL</h2>
+<ul>
+<li>Uses the IAM key of the person signing the URL. Anyone with the pre-signed URL has the same rights as the person signing it.</li>
+<li><strong>No filter rules can be applied</strong></li>
+</ul>
+<h1 id="cloudfront-functions">CloudFront Functions</h1>
+<ul>
+<li>
+<p>Lightweight functions written in <strong>JS</strong> deployed at edge locations</p>
+</li>
+<li>
+<p><strong>Sub-ms startup times</strong></p>
+</li>
+<li>
+<p>High throughput: <strong>millions or requests/second</strong></p>
+</li>
+<li>
+<p>For high scale, <strong>latency sensitive CDN customizations</strong></p>
+</li>
+<li>
+<p>Can modify <strong>Viewer Request</strong> and <strong>Viewer Response</strong> only</p>
+<p><img src="/_resources/049eb8170d994487ac98832cb03ebddb.png" /></p>
+</li>
+<li>
+<p>Native feature of CloudFront (code managed within CloudFront)</p>
+</li>
+<li>
+<p>Use cases (require &lt; 1ms compute time):</p>
+<ul>
+<li>URL rewrites or redirects</li>
+<li><strong>Cache key normalization</strong>: transform request attributes (headers, cookies, query strings, URL) to create an optimal cache key</li>
+<li><strong>Header manipulation</strong>: insert/modify/delete HTTP headers in the request or response</li>
+<li><strong>Request authentication &amp; authorization</strong>: create and validate user-generated tokens (e.g. JWT) to allow/deny requests</li>
+</ul>
+</li>
+</ul>
+<h2 id="cloudfront-function-vs-lambdaedge">CloudFront Function vs Lambda@Edge</h2>
+<p><img src="/_resources/a9a637107ea54742aaeee9cddddb9558.png" /></p>
+<h1 id="cache-key">Cache Key</h1>
+<ul>
+<li><strong>A unique identifier for each object in the cache</strong></li>
+<li>If the same cache key is created from subsequent requests, the cached content will be returned.</li>
+<li><strong>Default</strong>: hostname + resource portion of the URL</li>
+<li>Can enhance the cache key (making it more complex) by adding other elements of the request (HTTP headers, cookies, query strings) using <strong>Cache Policies</strong></li>
+</ul>
+<p><img src="/_resources/4a90d2e087d44ae4a0bc409851540a0b.png" />{width=70%}</p>
+<h1 id="cache-policy">Cache Policy</h1>
+<ul>
+<li>Controls how the caching mechanism works in CloudFront</li>
+<li>Include in cache key:
+<ul>
+<li><strong>HTTP Headers</strong>: <code>None</code> or <code>Whitelist</code></li>
+<li><strong>Cookies</strong>: <code>None</code> or <code>Whitelist</code> or <code>Include All-Except</code> or <code>All</code></li>
+<li><strong>Query Strings</strong>: <code>None</code> or <code>Whitelist</code> or <code>Include All-Except</code> or <code>All</code></li>
+</ul>
+</li>
+<li><strong>The fewer items in the cache key, the better the caching performance.</strong></li>
+<li><strong>Controls the TTL</strong> (can also be controlled by the origin using <code>Cache-Control</code> header or <code>Expires</code> header)</li>
+<li>Predefined managed cache policies or create your own</li>
+<li>All HTTP headers, cookies, and query strings included in the Cache Key are automatically included in origin requests</li>
+</ul>
+<h1 id="origin-request-policy">Origin Request Policy</h1>
+<ul>
+<li>Controls what should be included in the origin request without including them in the cache key
+<ul>
+<li><strong>HTTP Headers</strong>: <code>None</code> or <code>Whitelist</code> or <code>All</code></li>
+<li><strong>Cookies</strong>: <code>None</code> or <code>Whitelist</code> or <code>All</code></li>
+<li><strong>Query Strings</strong>: <code>None</code> or <code>Whitelist</code> or <code>All</code></li>
+</ul>
+</li>
+<li>Can add CloudFront HTTP headers and custom headers to origin requests that were not present in the viewer request.</li>
+<li>Predefined managed origin request policies or create your own</li>
+</ul>
+<p><img src="/_resources/b9a0ed4622e540f09fb606e77e60e7e3.png" /></p>
+<h1 id="cache-behaviors">Cache Behaviors</h1>
+<ul>
+<li>
+<p><strong>Configure cache differently based on the path pattern in the request</strong> (eg. route to different origins or origin groups based on the path pattern in the request)</p>
+</li>
+<li>
+<p><code>/*</code> is the default cache behavior (always processed at the end to find more specific pattern matches beforehand)</p>
+</li>
+<li>
+<p><strong>Configure different Cache Policy and Origin Request Policy for different cache behaviors</strong></p>
+</li>
+<li>
+<p>Validate requests differently for each cache behavior (eg. only allow requests at <code>/api</code> if they have access token in the header)</p>
+</li>
+<li>
+<p>Example: Sign in page</p>
+<p>User logs in at <code>/login</code> and gets back signed cookies. Configure the cache policy for default cache behavior to only accept requests if they have signed cookies.</p>
+</li>
+</ul>
+<p><img src="/_resources/1be740b2c36c4c56b1a9b8ec5a4a1f34.png" />{width=40%}</p>
+<p><img src="/_resources/408349b4340b4960a8790c09856b5de4.png" /></p>
+<h1 id="cache-invalidation">Cache Invalidation</h1>
+<ul>
+<li>If the content is updated at the origin, we can invalidate the cache at all the edge locations using <code>CreateInvalidation</code> API.</li>
+<li>Can invalidate the entire cache, a single file or all the files at a given path.</li>
+<li><strong>Cache invalidation is not cost-effective</strong> (need to pay extra for invalidation requests)</li>
+<li>For a cost effective solution, version your objects using the path or filename and update the application to pull the new version.</li>
+</ul>
+<p><img src="/_resources/c09e0b1421a14d0bbf2c96ff00df4c17.png" />{width=50%}</p>
+<h1 id="real-time-logs">Real-time Logs</h1>
+<p><img src="/_resources/cdaade6c64154879a64c06570370bc00.png" /></p>
+<ul>
+<li>Send CloudFront logs in real-time to KDS</li>
+<li>Used to monitor and analyze CDN performance</li>
+<li><strong>Sampling rate</strong>: percentage of requests logged</li>
+<li>Can log specific fields and <strong>cache behaviors</strong></li>
+</ul>
+<h1 id="tls-encryption">TLS Encryption</h1>
+<ul>
+<li><strong>Origin Protocol Policy</strong>: used to enable SSL between the distribution and the origin</li>
+<li><strong>Viewer Protocol Policy</strong>: used to enable SSL between the client (user) and the distribution</li>
+<li>TLS termination takes place at the distribution level. If the distribution - origin connection needs to be encrypted, another TLS connection is established.</li>
+</ul>
+<h1 id="misc">Misc</h1>
+<ul>
+<li>You cannot directly integrate Cognito User Pools with CloudFront distribution as you have to create a separate Lambda@Edge function to accomplish the authentication via Cognito User Pools.</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

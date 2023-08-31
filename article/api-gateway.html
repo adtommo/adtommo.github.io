@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>API Gateway - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">API Gateway</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692713877232"
+                  >2023-08-22 15:17</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692802208471"
+                  >2023-08-23 15:50</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Networking</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li>Serverless REST APIs with <strong>TLS termination</strong> (all of the APIs created with API Gateway expose <strong>HTTPS</strong> endpoints only)</li>
+<li>API versioning</li>
+<li>Multiple environment (dev, test, prod)</li>
+<li>Request throttling</li>
+<li>Authentication and Authorization</li>
+<li>Supports API keys</li>
+<li>Supports <strong>WebSocket</strong></li>
+<li>Cache API responses</li>
+<li>Generate SDK and API specifications</li>
+<li>Swagger / OpenAPI config supported (import or export)</li>
+<li>Transform and validate requests and responses</li>
+<li>Firewall can be implemented using Web Application Firewall (WAF)</li>
+</ul>
+<h1 id="integration">Integration</h1>
+<h2 id="integration-types">Integration Types</h2>
+<ul>
+<li><code>MOCK</code> - API gateway returns a mock (hardcoded) response (useful in development)</li>
+<li><code>AWS_PROXY</code> (Lambda Proxy)
+<ul>
+<li>Incoming request from the client is <strong>proxied to the lambda function</strong> as a JSON event (request specific params like status code is automatically handled by API gateway)</li>
+<li>Used to create serverless REST APIs</li>
+<li><strong>Cannot modify the request &amp; response in API gateway</strong> (no mapping template)</li>
+<li>The entire processing of request happens in the Lambda function</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/2821a462c79c4aaf864ee229052d46f4.png" /></p>
+<ul>
+<li><code>AWS</code>
+<ul>
+<li>To integrate with AWS resources or a Lambda function (custom integration)</li>
+<li>Can modify integration requests and responses using <strong>mapping templates</strong></li>
+</ul>
+</li>
+<li><code>HTTP_PROXY</code>
+<ul>
+<li>Incoming request is proxied to any HTTP backend</li>
+<li><strong>Request &amp; response cannot be modified</strong> (no mapping template)</li>
+<li>Option to add HTTP headers in the request (eg. API key)</li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/6d9a08a359a24ec8b45c0fa158489784.png" /></p>
+<ul>
+<li><code>HTTP</code>
+<ul>
+<li>To integrate with any HTTP endpoint</li>
+<li>Can modify integration requests and responses using <strong>mapping templates</strong></li>
+</ul>
+</li>
+</ul>
+<p><img src="/_resources/059e9365de814929a1cb714d82836b9b.png" /></p>
+<h2 id="mapping-templates">Mapping Templates</h2>
+<ul>
+<li>
+<p>Used to modify requests and responses</p>
+<ul>
+<li>Modify query string parameters</li>
+<li>Modify body content</li>
+<li>Add headers</li>
+</ul>
+</li>
+<li>
+<p>Uses <strong>Velocity Template Language (VTL)</strong></p>
+</li>
+<li>
+<p><code>Content-Type</code> must be <code>application/json</code> or <code>application/xml</code></p>
+</li>
+<li>
+<p>Example: Exposing a SOAP backend as a REST API</p>
+<p>Use mapping template to convert requests and responses between JSON and XML.</p>
+<p><img src="/_resources/3087e90e08864bea924ad64323a6b77b.png" /></p>
+</li>
+</ul>
+<h1 id="endpoint-types">Endpoint Types</h1>
+<ul>
+<li><strong>Edge-Optimized</strong> (default)
+<ul>
+<li>For global clients</li>
+<li>Requests are routed through the CloudFront edge locations (improves latency)</li>
+<li>The API Gateway lives in only one region but it is accessible efficiently through edge locations</li>
+</ul>
+</li>
+<li><strong>Regional</strong>
+<ul>
+<li>For clients within the same region</li>
+<li>Could manually combine with your own CloudFront distribution for global deployment (this way you will have more control over the caching strategies and the distribution)</li>
+</ul>
+</li>
+<li><strong>Private</strong>
+<ul>
+<li>Can only be accessed within your VPC using an <strong>Interface VPC endpoint</strong> (ENI)</li>
+<li>Use resource policy to define access</li>
+</ul>
+</li>
+</ul>
+<h1 id="deployments">Deployments</h1>
+<ul>
+<li>
+<p>Deploy the API to get the API Gateway endpoint</p>
+</li>
+<li>
+<p>If you make changes to the API, a new version is internally created. You need to deploy the API for the changes to take effect.</p>
+</li>
+<li>
+<p><strong>Versions (changes) are deployed to stages</strong> (no limit on the number of stages)</p>
+</li>
+<li>
+<p>Metrics and logs are separate for each stage</p>
+</li>
+<li>
+<p>Each stage has independent configuration and can be rolled back to any version (the whole history of deployments to a stage is kept)</p>
+</li>
+<li>
+<p>Handling breaking changes using multiple stages</p>
+<p>We want to create a new version of the application which involves breaking changes at the API level. In this case, we can deploy a new stage (v2) and build our new application there. Since multiple stages can co-exist, we can have both the versions working and once all the users have migrated to v2, we can bring down v1.</p>
+<p><img src="/_resources/daca6e92ba8a46c9a4ac1fa9cb3d06f5.png" /></p>
+</li>
+</ul>
+<h2 id="stage-variables">Stage Variables</h2>
+<ul>
+<li>
+<p>Environment variables for API gateway</p>
+</li>
+<li>
+<p>Can be changed without redeploying the API</p>
+</li>
+<li>
+<p>Stage variables are passed to <strong>context</strong> object in lambda functions</p>
+</li>
+<li>
+<p>Format to access stage variables in API gateway - <code>${stageVariables.variableName}</code></p>
+</li>
+<li>
+<p>Example: Stage variables to point to Lambda Aliases</p>
+<p>Stage variables can be used to point to different Lambda aliases. Each stage points to a different lambda alias depending on the value of a stage variable. To shift traffic, we can modify the alias weights without making changes to the API gateway.</p>
+<p><img src="/_resources/4a937b378ca9467ea425c4005c0bc8ec.png" /></p>
+<p>The lambda function in API gateway - <code>&lt;function-name&gt;:${stageVariables.variableName}</code></p>
+<p><img src="/_resources/4a0df227bace4cfbaed6942d5176f77d.png" /></p>
+<p>This will require adding resource-based policies on all the aliases to allow the API gateway to invoke them.</p>
+<p><img src="/_resources/01160ec952c24f61b91329f999c2f132.png" /></p>
+<p>For every stage, create a stage variable with the value as name of the alias it should point to.</p>
+<p><img src="/_resources/8df99dd722bf4e4e8b6da16746be3c7b.png" /></p>
+</li>
+</ul>
+<h2 id="canary-deployment">Canary Deployment</h2>
+<ul>
+<li>Use a <strong>canary stage</strong> with the new application version</li>
+<li>Can override stage variables for Canary deployment</li>
+</ul>
+<p><img src="/_resources/1aeae20ccf74413883cf3375b149d7a1.png" /></p>
+<h1 id="openapi-spec">OpenAPI Spec</h1>
+<ul>
+<li>Define REST APIs as configuration (YAML or JSON)</li>
+<li>Also allows to import AWS specific parameters and extensions</li>
+<li>Export as OpenAPI spec to generate SDK for clients</li>
+<li>API schema can also be defined in the OpenAPI spec
+<ul>
+<li>
+<p>Allows API gateway to validate incoming requests for correct schema</p>
+</li>
+<li>
+<p>Returns 400 status code if the validation fails</p>
+</li>
+<li>
+<p>Reduces unnecessary calls to the backend</p>
+</li>
+<li>
+<p>Examples</p>
+<p><img src="/_resources/f2092c55bf574e00bec603323498c4d0.png" />{width=50%}</p>
+<p><img src="/_resources/85504bd5c6964141b4862940484c1d95.png" /></p>
+<p><img src="/_resources/cc16a453fec3428780687158e8f12549.png" /></p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="caching-api-responses">Caching API Responses</h1>
+<ul>
+<li>Reduces the number of calls made to the backend</li>
+<li><strong>TTL: 0 s - 1 h (default 300 sec)</strong></li>
+<li>Caching at the stage level</li>
+<li>Ability to override cache settings at the method level</li>
+<li>Cache capacity: 0.5 GB - 237 GB</li>
+<li>Cache can be encrypted</li>
+<li>Caching is expensive (use only in production)</li>
+</ul>
+<h2 id="cache-invalidation">Cache Invalidation</h2>
+<ul>
+<li>
+<p>Invalidate the entire cache from console</p>
+</li>
+<li>
+<p>Clients can invalidate the cache for a request by adding a header <code>Cache-Control: max-age=0</code> in the request. This will send the request to the backend and update the cache with the response.</p>
+<p>Recommended to impose an IAM policy to allow only the clients to invalidate the cache. Without an IAM policy or Authorization Disabled, anyone can invalidate the cache.</p>
+<p><img src="/_resources/4ce18bdc24d14f06b5508238e25ddb91.png" />{width=80%}</p>
+</li>
+<li>
+<p>Tick the <code>Require authorization</code> checkbox to only allow authorized clients to invalidate the cache.</p>
+</li>
+</ul>
+<p><img src="/_resources/9c3f9c9315f34fa599154cbfe3ce1fc8.png" />{width=50%}</p>
+<h1 id="usage-plans">Usage Plans</h1>
+<ul>
+<li>Used to monetize the APIs
+<ul>
+<li>Which clients can access what stages and methods</li>
+<li>Throttling and quota limits for each client</li>
+</ul>
+</li>
+<li>Clients use API keys to access the APIs (passed in <code>X-API-Key</code> header)</li>
+<li>Throttling limits are applied for each API key</li>
+<li>Clients are billed based on the API calls using their API keys</li>
+</ul>
+<h2 id="steps-to-setup-a-usage-plan">Steps to setup a Usage Plan</h2>
+<ul>
+<li>Create the API and deploy them to the right stages</li>
+<li>Generate API keys and distribute them to the customers</li>
+<li>Create a usage plan with the desired throttle and quota limits</li>
+<li><strong>Associate</strong> API stages and <strong>API keys with the usage plan</strong> using <code>CreateUsagePlanKey</code> API</li>
+</ul>
+<h1 id="observability">Observability</h1>
+<h2 id="logging">Logging</h2>
+<ul>
+<li>Logs contain the request and response passing through API gateway</li>
+<li><strong>Can be enabled at the stage level</strong></li>
+<li>Can override the logging settings at the API level</li>
+<li>Sent to CloudWatch logs (set Log Level: <code>ERROR</code>, <code>DEBUG</code>, <code>INFO</code>)</li>
+<li>Two types of logs:
+<ul>
+<li><strong>Execution Logs</strong>: log requests, responses, etc.</li>
+<li><strong>Access Logs</strong>: who accessed the API and how</li>
+</ul>
+</li>
+</ul>
+<h2 id="tracing">Tracing</h2>
+<ul>
+<li>Enable X-Ray to trace API calls</li>
+</ul>
+<h2 id="metrics">Metrics</h2>
+<ul>
+<li>Metrics are available at the stage level</li>
+<li>Can enable detailed metrics</li>
+<li>Key metrics:
+<ul>
+<li><code>CacheHitCount</code> &amp; <code>CacheMissCount</code></li>
+<li><code>Count</code> - request count within a period</li>
+<li><code>IntegrationLatency</code> - how long the backend takes to reply to the API gateway</li>
+<li><code>Latency</code> - how long client had to wait to get a response from API gateway (includes integration latency and other API Gateway overheads such as authorization)</li>
+<li><code>4XXError</code> - client side error count</li>
+<li><code>5XXError</code> - server sider error count</li>
+</ul>
+</li>
+</ul>
+<h1 id="performance">Performance</h1>
+<ul>
+<li><strong>Max timeout: 29 sec</strong></li>
+<li>Throttling limit - 10,000 req/sec across all APIs (account level soft limit)
+<ul>
+<li><code>429 Too Many Requests</code> error in case of throttling</li>
+<li>If one API is getting too many requests, it can throttle other APIs</li>
+<li>Set stage limits or method limits to prevent overuse</li>
+<li>Create a usage plan to throttle per customer</li>
+</ul>
+</li>
+</ul>
+<h1 id="cross-origin-resource-sharing-cors">Cross Origin Resource Sharing (CORS)</h1>
+<ul>
+<li>
+<p>Enable if you will receive API calls from another domain</p>
+</li>
+<li>
+<p>The response of pre-flight request must contain <code>Access-Control-Allow-Origin</code> header to allow the cross-origin client to make API calls.</p>
+</li>
+<li>
+<p>When the integration type is proxy-based, the responses are proxied to the client without modification by API gateway. So, CORS needs to be handled by the backend itself.</p>
+</li>
+<li>
+<p>For non-proxy integrations, CORS can be handled by API gateway.</p>
+</li>
+<li>
+<p><code>MaxAgeSeconds</code> specifies the TTL used by browser to cache pre-flight response</p>
+</li>
+<li>
+<p>The client-side JS in the website (<code>www.example.com</code>) wants to make an API call to the backend hosted via API gateway at <code>api.example.com</code>. The browser will first make a pre-flight request to the backend asking what methods are allowed for <code>www.example.com</code>. If CORS is enabled, API gateway will allow the required methods.</p>
+<p><img src="/_resources/fb51d0073ff8469fa4d6ff6b7021c2a5.png" /></p>
+</li>
+</ul>
+<h1 id="tls-termination">TLS Termination</h1>
+<ul>
+<li>TLS certificates can be referenced from ACM</li>
+<li>Edge-Optimized endpoint → certificate must be in <code>us-east-1</code></li>
+<li>Regional endpoint → certificate must be in the same region as API Gateway</li>
+<li>Must setup CNAME or A-alias record in Route 53 to point to the API gateway endpoint</li>
+</ul>
+<h1 id="user-authentication">User Authentication</h1>
+<h2 id="iam">IAM</h2>
+<p><img src="/_resources/c675d8dc2f4a4e4cad13358751168067.png" /></p>
+<ul>
+<li>IAM User or Role for authentication</li>
+<li>IAM Policy applied to principals for authorization (access control)</li>
+<li>Fully integrated with API gateway (no custom implementation needed)</li>
+<li>Good to provide access within AWS</li>
+<li>Leverages <strong>SigV4</strong> to sign the credentials in the header</li>
+<li><strong>Resource-based policies</strong> can be used to allow the following access to API gateway
+<ul>
+<li>IAM Users and Roles in another account (cross-account access)</li>
+<li>IP Addresses</li>
+<li>VPC Endpoint</li>
+</ul>
+</li>
+</ul>
+<h2 id="cognito-user-pools-cup">Cognito User Pools (CUP)</h2>
+<p><img src="/_resources/267d9162da094265a52a3ad424075eb0.png" /></p>
+<p>The client first authenticates themselves to CUP and get the token. They pass the token along with the request to API gateway. API gateway verifies the token with Cognito before forwarding the request to the backend.</p>
+<ul>
+<li>Cognito is AWS managed identity provider. It fully manages user lifecycle and expires tokens automatically.</li>
+<li>Fully integrated with API gateway (no custom implementation needed)</li>
+<li><strong>Only provides authentication</strong> (access to the API) (authorization needs to be managed in the backend)</li>
+<li>Good to provide access to external users</li>
+</ul>
+<h2 id="lambda-authorizer">Lambda Authorizer</h2>
+<p><img src="/_resources/dbec6acaee404110bd7aaf04e44ce73b.png" /></p>
+<p>The client authenticates themselves to a 3rd party IDP and retrieve the token. The token is passed along with the request to the API gateway. The lambda authorizer takes the token, decodes it and determines the required IAM permissions. It can optionally verify the token with the IDP. The lambda authorizer then creates an IAM principal and policy granting the required permissions.</p>
+<ul>
+<li>Custom authorization logic (manual integration)</li>
+<li>Authentication is handled externally</li>
+<li>Authorization is performed by the lambda function</li>
+<li>Enable caching the result of authorization (recommended)</li>
+<li>Recommended to use this and not just rely on API keys for enhanced security.</li>
+<li>Two types:
+<ul>
+<li><strong>Token-based Lambda authorizer</strong> (Token Authorizer) uses JWT or OAuth <strong>for 3rd party authentication system</strong></li>
+<li><strong>Request parameter-based Lambda authorizer</strong> (Request Authorizer) receives the caller's identity in a combination of headers, query string parameters, stageVariables, and <code>$context</code> variables.</li>
+</ul>
+</li>
+</ul>
+<h1 id="api-types">API Types</h1>
+<h2 id="rest"><strong>REST</strong></h2>
+<ul>
+<li>Standard APIs that we mostly create</li>
+<li>Supports resource-based policy</li>
+<li><strong>Does not support OIDC and OAuth 2.0 natively</strong></li>
+</ul>
+<h2 id="http"><strong>HTTP</strong></h2>
+<ul>
+<li><strong>Low-latency</strong> &amp; cost effective <strong>proxies</strong> to Lambda or any HTTP endpoint (no data mapping)</li>
+<li>Supports OIDC and OAuth 2.0</li>
+<li>No usage plans and API keys</li>
+<li>Does not support resource-based policies</li>
+<li><strong>Cheaper than REST APIs</strong></li>
+</ul>
+<h2 id="websocket"><strong>WebSocket</strong></h2>
+<ul>
+<li>
+<p>2 - way communication between the client and the server</p>
+</li>
+<li>
+<p>Connection is persistent and stateful</p>
+</li>
+<li>
+<p>Used in real-time chat application, collaboration platforms, multiplayer games and financial trading platforms.</p>
+</li>
+<li>
+<p>The backend can be anything (AWS services or any HTTP endpoint)</p>
+</li>
+<li>
+<p>Establishing a WebSocket Connection</p>
+<p>The client sends a request to the WebSocket url (<code>wss://[some-uniqueid].execute-api.[region].amazonaws.com/[stage-name]</code>) of API gateway. This establishes a persistent connection between the client and the API gateway. The API gateway calls a Lambda function (<code>onConnect</code>) and passes the connectionId which is then stored in DynamoDB (stateful).</p>
+<p><img src="/_resources/8e554514aef3424ab54ca683f6f2049f.png" /></p>
+</li>
+<li>
+<p>Client → Server Messaging</p>
+<p>Once the WebSocket connection is established, the client can keep on sending messages (frames) to the server on the same WebSocket URL through the same persistent connection. The sent frames will invoke another lambda function to perform the desired action.</p>
+<p><img src="/_resources/172d99e74a034099b0423727151f38ba.png" /></p>
+</li>
+<li>
+<p>Server → Client Messaging</p>
+<p>A lambda function can make an HTTP POST request (signed by SigV4) to the <strong>Connection URL</strong> (WebSocket URL + <code>/@connections/[connectionId]</code>) to send messages to the client through the API gateway.</p>
+<p><img src="/_resources/a096085d2c7c42e6ae53f99487f191a6.png" /></p>
+</li>
+<li>
+<p>Operations on WebSocket Connection URL (WebSocket URL + <code>/@connections/[connectionId]</code>)</p>
+<ul>
+<li><code>POST</code> - Send a message from the Server to the connected WS Client</li>
+<li><code>GET</code> - Get the latest connection status of the connected WS Client</li>
+<li><code>DELETE</code> - Disconnect the connected Client from the WS connection</li>
+</ul>
+</li>
+<li>
+<p><strong>Routing</strong>: Incoming JSON messages from the client are routed to different backend based on the <strong>Route Key Table</strong> (defined in API gateway). We can specify route selection expression to route based on a field in the JSON message. If no match, it is sent to the <code>$default</code> route.</p>
+</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>

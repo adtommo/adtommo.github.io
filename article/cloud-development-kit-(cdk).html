@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<link rel="stylesheet" href="/_assets/main.css" />
+    <title>Cloud Development Kit (CDK) - adtommo-notes</title>
+  </head>
+  <body>
+    <div class="main">
+      <nav class="navigation">
+        <a href="/">adtommo-notes</a>
+      </nav>
+      <article>
+        <header>
+          <h1 class="article-title">Cloud Development Kit (CDK)</h1>
+          <div class="article-info">
+            <div>
+              <span
+                >Created At：<time datetime="1692783048774"
+                  >2023-08-23 10:30</time
+                ></span
+              >
+              <span
+                >Updated At：<time datetime="1692801385753"
+                  >2023-08-23 15:36</time
+                ></span
+              >
+            </div>
+            
+            <div>
+              Keywords: 
+              <span class="keyword">Infrastructure</span>
+              
+              <span class="keyword">AWS Developer Associate (DVA-C02)</span>
+              
+            </div>
+            
+          </div>
+        </header>
+        <div class="article-content markdown-body"><h1 id="intro">Intro</h1>
+<ul>
+<li><strong>IaC to define infrastructure using programming languages</strong> (instead of declarative config files as in the case of CloudFormation and SAM)</li>
+<li>A step above CloudFormation (static type checks during programming which is not available in YAML config files)</li>
+<li>Supports JavaScript/TypeScript, Python, Java and .NET</li>
+<li>Deploy infrastructure and application code together</li>
+<li>The code is compiled to a CloudFormation template using <strong>CDK CLI</strong></li>
+<li>Great for Lambda functions and Docker containers</li>
+<li>Contains high-level components called <strong>constructs</strong></li>
+</ul>
+<h1 id="construct">Construct</h1>
+<ul>
+<li>Component that encapsulates everything CDK needs to create the final CloudFormation stack</li>
+<li>Can represent a single AWS resource (e.g. S3 bucket) or multiple related resources (e.g. worker queue with compute)</li>
+<li><strong>AWS Construct Library</strong> - a collection of Constructs included in AWS CDK which contains Constructs for every AWS resource</li>
+<li><strong>Construct Hub</strong> - repository of constructs created by AWS, 3rd parties, and open-source CDK community</li>
+</ul>
+<h2 id="layers-of-construct">Layers of Construct</h2>
+<ul>
+<li>
+<p><strong>Layer 1 (L1)</strong></p>
+<p><img src="/_resources/2dfcd8bae3c248708b5ed3d1378ff383.png" />{width=70%}</p>
+<ul>
+<li>AWS resources exactly as available in CloudFormation (low level)</li>
+<li>Construct names start with <code>Cfn</code> (CFN resources)</li>
+<li>Must explicitly configure all resource properties</li>
+</ul>
+</li>
+<li>
+<p><strong>Layer 2 (L2)</strong></p>
+<p><img src="/_resources/7864798bbbaa4834981725745d31add5.png" />{width=70%}</p>
+<ul>
+<li>AWS resources with <strong>intent-based API</strong> (higher level)</li>
+<li>Convenient defaults (don’t need to know all the details about the resources)</li>
+<li><strong>Resource methods</strong> to work easily with resources (eg. <code>bucket.urlForObject()</code>)</li>
+</ul>
+</li>
+<li>
+<p><strong>Layer 3 (L3)</strong></p>
+<p><img src="/_resources/ad578b9139f54acfa564a6294820fd7a.png" />{width=80%}</p>
+<ul>
+<li>Collection of multiple related AWS resources forming a pattern (high level)</li>
+<li>Don’t have to setup the infrastructure from scratch as in CloudFormation</li>
+<li>Available for common architectures:
+<ul>
+<li><code>aws-apigateway.LambdaRestApi</code> - represents an API gateway backed by a Lambda function</li>
+<li><code>aws-ecs-patterns.ApplicationLoadBalancerFargateService</code> - represents an architecture that includes a Fargate cluster with ALB</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="bootstrapping">Bootstrapping</h1>
+<ul>
+<li><strong>Provisioning resources for CDK before deploying CDK apps in an AWS environment</strong> (combination of account &amp; region)</li>
+<li>Before using CDK to deploy an app in any AWS environment, we need to deploy a CloudFormation stack called <strong>CDK Toolkit</strong> in that environment, using the command ****<code>cdk bootstrap aws://&lt;aws_account&gt;/&lt;aws_region&gt;</code>.</li>
+<li>If CDKToolkit is not deployed, we’ll get an error: “<em><strong>Policy contains a statement with one or more invalid principal</strong></em>”.</li>
+<li>The CDKToolkit stack contains:
+<ul>
+<li>S3 Bucket - to store files</li>
+<li>IAM Roles - to grant permissions to perform deployments</li>
+</ul>
+</li>
+</ul>
+<h1 id="commands">Commands</h1>
+<p><img src="/_resources/65f7cd12364f434a9cc0748d952f4368.png" />{width=80%}</p>
+<h1 id="testing">Testing</h1>
+<ul>
+<li>Use <strong>CDK Assertions Module</strong> along with testing frameworks like Jest or PyTest for testing the resources created by CDK.</li>
+<li>Two types:
+<ul>
+<li><strong>Fine-grained Assertions</strong> (common) - test specific aspects of the CloudFormation template</li>
+<li><strong>Snapshot Tests</strong> - test the synthesized CloudFormation template against a previously stored baseline template
+<ul>
+<li>To import a CloudFormation template:
+<ul>
+<li><code>Template.fromStack()</code> - for stack built in CDK</li>
+<li><code>Template.fromString()</code> - for stack build outside CDK</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+      </article>
+    </div>
+  </body>
+</html>
